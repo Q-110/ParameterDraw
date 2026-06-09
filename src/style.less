@@ -28,7 +28,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -176,11 +177,6 @@ h3 {
   }
 }
 
-.path-line {
-  color: #687774;
-  font-size: 12px;
-}
-
 .scheme-name {
   margin-top: 6px;
   font-weight: 600;
@@ -198,6 +194,54 @@ h3 {
 
   select {
     width: 100%;
+  }
+}
+
+.template-select {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 13px;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #49635f;
+    border-bottom: 2px solid #49635f;
+    transform: translateY(-65%) rotate(45deg);
+    pointer-events: none;
+  }
+
+  &:has(select:disabled)::after {
+    opacity: 0.45;
+  }
+
+  select {
+    min-height: 40px;
+    appearance: none;
+    border: 1px solid #b9c8c4;
+    border-radius: 7px;
+    background: linear-gradient(180deg, #ffffff 0%, #f7faf9 100%);
+    color: #1c302c;
+    padding: 7px 38px 7px 11px;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      border-color: #6f918a;
+      background: #ffffff;
+    }
+
+    &:focus {
+      border-color: #2f6f73;
+      outline: 2px solid rgba(47, 111, 115, 0.18);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      color: #73817e;
+      background: #f0f3f2;
+    }
   }
 }
 

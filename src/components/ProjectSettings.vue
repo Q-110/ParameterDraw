@@ -1,5 +1,5 @@
 <template>
-  <section v-if="section !== 'basic'" class="panel project-panel">
+  <section class="panel project-panel">
     <h2>项目属性</h2>
     <div class="compact-form">
       <label>
@@ -44,57 +44,21 @@
     </div>
   </section>
 
-  <section v-if="section !== 'project'" class="panel basic-panel">
-    <h2>基础设置</h2>
-    <div class="compact-form two-columns">
-      <label>
-        <span>底板顶部标高</span>
-        <div class="unit-input">
-          <input :value="params.底板顶部标高" type="number" step="0.01" @input="updateParam('底板顶部标高', $event)" />
-          <em>m</em>
-        </div>
-      </label>
-      <label>
-        <span>垫层超出底面距离</span>
-        <div class="unit-input">
-          <input :value="params.垫层超出底面距离" type="number" @input="updateParam('垫层超出底面距离', $event)" />
-          <em>cm</em>
-        </div>
-      </label>
-      <label>
-        <span>垫层厚度</span>
-        <div class="unit-input">
-          <input :value="params.垫层厚度" type="number" @input="updateParam('垫层厚度', $event)" />
-          <em>cm</em>
-        </div>
-      </label>
-      <label>
-        <span>止水偏移表面</span>
-        <div class="unit-input">
-          <input :value="params.止水偏移表面" type="number" @input="updateParam('止水偏移表面', $event)" />
-          <em>cm</em>
-        </div>
-      </label>
-    </div>
-  </section>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { OutputInfo, ParamKey, ProjectInfo, TemplateParameters } from '../types'
+import type { OutputInfo, ProjectInfo } from '../types'
 
 // 项目设置展示项目属性和基础参数  所有修改都通过事件交给父组件
 const props = defineProps<{
-  section?: 'project' | 'basic'
   project: ProjectInfo
   output: OutputInfo
-  params: TemplateParameters
   isElectron: boolean
 }>()
 
 const emit = defineEmits<{
   updateProject: [key: keyof ProjectInfo, value: string]
-  updateParam: [key: ParamKey, value: number]
   selectOutputDirectory: []
 }>()
 
@@ -113,9 +77,4 @@ function updateDrawingMonth(event: Event) {
   emit('updateProject', '出图时间', (event.target as HTMLInputElement).value.replace('-', '.'))
 }
 
-
-// 数值字段
-function updateParam(key: ParamKey, event: Event) {
-  emit('updateParam', key, Number((event.target as HTMLInputElement).value))
-}
 </script>

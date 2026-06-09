@@ -11,11 +11,13 @@
     </div>
     <label class="template-field">
       <span>模板</span>
-      <select :value="templateId" :disabled="runState === 'running'" @change="updateTemplate">
-        <option v-for="template in templates" :key="template.id" :value="template.id">
-          {{ template.name }}
-        </option>
-      </select>
+      <div class="template-select">
+        <select :value="templateId" :disabled="runState === 'running'" @change="updateTemplate">
+          <option v-for="template in templates" :key="template.id" :value="template.id">
+            {{ template.name }}
+          </option>
+        </select>
+      </div>
     </label>
     <div class="button-grid">
       <button type="button" @click="emit('new')">新建</button>
@@ -26,7 +28,6 @@
     <button type="button" class="primary-action" :disabled="runState === 'running' || validationErrorCount > 0" @click="emit('run')">
       {{ runState === 'running' ? '正在出图' : '执行出图' }}
     </button>
-    <p class="path-line">{{ schemePath || (isElectron ? '尚未保存到文件' : '浏览器模式使用下载保存') }}</p>
     <input ref="fileInput" type="file" accept="application/json" hidden @change="emit('browserFileChange', $event)" />
   </section>
 </template>
@@ -37,10 +38,8 @@ import type { RunState, TemplateDefinition } from '../types'
 
 const props = defineProps<{
   schemeName: string
-  schemePath: string | null
   runState: RunState
   validationErrorCount: number
-  isElectron: boolean
   templateId: string
   templates: TemplateDefinition[]
 }>()

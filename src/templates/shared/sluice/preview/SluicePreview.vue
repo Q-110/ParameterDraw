@@ -32,7 +32,8 @@ import 'element-plus/es/components/icon/style/css'
 import { ElTooltip } from 'element-plus/es/components/tooltip/index'
 import 'element-plus/es/components/tooltip/style/css'
 import { computed, ref, type ComponentPublicInstance } from 'vue'
-import type { DerivedValues, FieldGroup, FocusTarget, PartId, PreviewOptions, SluicePreviewParameters } from '../../types.js'
+import type { FieldGroup, FocusTarget, PartId } from '../../../../types.js'
+import type { DerivedValues, PreviewOptions, SluicePreviewParameters } from '../types.js'
 import SluicePreviewCanvas from './SluicePreviewCanvas.vue'
 
 const props = defineProps<{

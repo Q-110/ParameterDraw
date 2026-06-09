@@ -4,10 +4,8 @@
       <SchemePanel
         ref="schemePanel"
         :scheme-name="schemeName"
-        :scheme-path="schemePath"
         :run-state="runState"
         :validation-error-count="validationErrors.length"
-        :is-electron="isElectron"
         :template-id="templateId"
         :templates="templateDefinitions"
         @update:scheme-name="schemeName = $event"
@@ -21,13 +19,10 @@
       />
 
       <ProjectSettings
-        section="project"
         :project="project"
         :output="output"
-        :params="params"
         :is-electron="isElectron"
         @update-project="updateProject"
-        @update-param="updateParam"
         @select-output-directory="selectOutputDirectory"
       />
     </aside>
@@ -49,27 +44,24 @@
       </section>
 
       <section class="center-bottom">
-        <ProjectSettings
-          section="basic"
-          :project="project"
-          :output="output"
+        <BasicParameterPanel
+          :fields="currentTemplate.basicFields"
           :params="params"
-          :is-electron="isElectron"
-          @update-project="updateProject"
           @update-param="updateParam"
-          @select-output-directory="selectOutputDirectory"
         />
-        <DerivedPanel :elevation-rows="elevationRows" :geometry-rows="geometryRows" />
+        <DerivedPanel
+          :sections="currentTemplate.derivedSections"
+          :derived="derived"
+        />
       </section>
     </section>
 
     <section class="layout-column right-column">
       <section class="panel preview-panel">
-        <SluicePreview
-          :params="previewParams"
-          :derived="previewDerived"
-          :groups="currentTemplate.groups"
-          :preview-options="currentTemplate.previewOptions"
+        <TemplatePreviewHost
+          :template="currentTemplate"
+          :params="params"
+          :derived="derived"
           :focus="focused"
           :active-part-id="activeGroupId"
         />
@@ -81,17 +73,17 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref } from 'vue'
+import BasicParameterPanel from './components/BasicParameterPanel.vue'
 import DerivedPanel from './components/DerivedPanel.vue'
 import ParameterForm from './components/ParameterForm.vue'
 import ProjectSettings from './components/ProjectSettings.vue'
 import RunLogPanel from './components/RunLogPanel.vue'
 import SchemePanel from './components/SchemePanel.vue'
-import SluicePreview from './components/preview/SluicePreview.vue'
+import TemplatePreviewHost from './components/TemplatePreviewHost.vue'
 import ValidationPanel from './components/ValidationPanel.vue'
-import { defaultParams, defaultProject } from './domain/parameters'
-import { defaultTemplate, getTemplateDefinition, templateDefinitions } from './domain/templates'
+import { defaultProject } from './domain/project'
+import { defaultTemplate, getTemplateDefinition, templateDefinitions } from './templates'
 import type {
-  DerivedValues,
   FieldDefinition,
   FocusTarget,
   OutputInfo,
@@ -99,11 +91,9 @@ import type {
   ProjectInfo,
   RunState,
   SchemeData,
-  SluicePreviewParameters,
   TemplateParameters,
 } from './types'
 
-type DisplayRow = [string, string]
 type BrowserDirectoryPicker = Window & {
   showDirectoryPicker?: () => Promise<{ name: string }>
 }
@@ -146,10 +136,8 @@ onBeforeUnmount(() => {
 // 派生值
 const currentTemplate = computed(() => getTemplateDefinition(templateId.value) ?? defaultTemplate)
 const derived = computed(() => currentTemplate.value.computeDerived(params, project))
-const previewParams = computed(() => ({ ...defaultParams, ...params }) as SluicePreviewParameters)
-const previewDerived = computed(() => derived.value as unknown as DerivedValues)
 // 一致性验证
-const validationErrors = computed(() => currentTemplate.value.validate(params))
+const validationErrors = computed(() => currentTemplate.value.validate(params, project))
 // 参数分组
 const activeGroup = computed(
   () => currentTemplate.value.groups.find((group) => group.id === activeGroupId.value) ?? currentTemplate.value.groups[0],
@@ -157,28 +145,6 @@ const activeGroup = computed(
 // 是否运行在 Electron 环境中
 const isElectron = computed(() => Boolean(window.sluice))
 
-
-/**
- * 将派生值整理成展示行  模板只负责渲染  不重复业务公式
- */
-// 高程数据
-const elevationRows = computed<DisplayRow[]>(() => [
-  ['底板高程', `${previewDerived.value.底板高程} m`],
-  ['闸顶高程', `${previewDerived.value.闸顶高程} m`],
-  ['上游墙顶高程', `${previewDerived.value.上游墙顶高程} m`],
-  ['消力池底板高程', `${previewDerived.value.消力池底板高程} m`],
-  ['下游底板高程', `${previewDerived.value.下游底板高程} m`],
-  ['下游墙顶高程', `${previewDerived.value.下游墙顶高程} m`],
-])
-// 几何尺寸
-const geometryRows = computed<DisplayRow[]>(() => [
-  ['闸门宽', `${formatNumber(previewDerived.value.闸门宽)} cm`],
-  ['闸总宽', `${formatNumber(previewDerived.value.闸总宽)} cm`],
-  ['上游下断面铺盖宽', `${formatNumber(previewDerived.value.上游渐变段下断面铺盖宽)} cm`],
-  ['下游上断面铺盖宽', `${formatNumber(previewDerived.value.下游渐变段上断面铺盖宽)} cm`],
-  ['渠坡比', previewDerived.value.渠坡比],
-  ['陡坡比', previewDerived.value.陡坡比],
-])
 /**
  * 生成保存和出图共用的方案 JSON
  */
@@ -398,7 +364,7 @@ function updateParam(key: ParamKey, value: number) {
 
 /**
  * 切换模板
- * 同名字段继承当前值   已编辑过的目标模板优先恢复缓存
+ * 首次进入使用目标模板默认值   再次进入恢复目标模板缓存
  */
 function switchTemplate(nextTemplateId: string) {
   const nextTemplate = getTemplateDefinition(nextTemplateId)
@@ -409,14 +375,6 @@ function switchTemplate(nextTemplateId: string) {
   templateParameterCache.set(templateId.value, { ...params })
   const cached = templateParameterCache.get(nextTemplate.id)
   const nextParameters: TemplateParameters = cached ? { ...cached } : { ...nextTemplate.defaults }
-
-  if (!cached) {
-    Object.keys(nextTemplate.defaults).forEach((key) => {
-      if (key in params) {
-        nextParameters[key] = params[key]
-      }
-    })
-  }
 
   Object.keys(params).forEach((key) => delete params[key])
   Object.assign(params, nextParameters)
@@ -433,6 +391,9 @@ function switchTemplate(nextTemplateId: string) {
  * @param field
  */
 function setFieldFocus(field: FieldDefinition) {
+  if (!field.part || !field.region) {
+    return
+  }
   focused.value = {
     part: field.part,
     region: field.region,
@@ -463,11 +424,4 @@ function downloadScheme(content: string) {
   URL.revokeObjectURL(link.href)
 }
 
-/**
- * 格式化
- * @param value
- */
-function formatNumber(value: number) {
-  return Number.isInteger(value) ? String(value) : value.toFixed(2)
-}
 </script>

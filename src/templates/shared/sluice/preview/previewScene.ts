@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js'
 import { LineSegments2 } from 'three/addons/lines/LineSegments2.js'
 import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js'
-import type { FocusTarget, PartId } from '../../types.js'
+import type { FocusTarget, PartId } from '../../../../types.js'
 
 export interface PreviewContext {
   part: PartId

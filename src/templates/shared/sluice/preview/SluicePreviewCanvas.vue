@@ -4,7 +4,8 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import type { DerivedValues, FieldGroup, FocusTarget, PartId, PreviewOptions, SluicePreviewParameters } from '../../types.js'
+import type { FieldGroup, FocusTarget, PartId } from '../../../../types.js'
+import type { DerivedValues, PreviewOptions, SluicePreviewParameters } from '../types.js'
 import {
   clearPreviewMeshes,
   createPreviewContext,

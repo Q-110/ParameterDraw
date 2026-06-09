@@ -33,7 +33,6 @@
 <script setup lang="ts">
 import type { FieldDefinition, FieldGroup, ParamKey, PartId, TemplateParameters } from '../types'
 
-// 参数表单接收当前分组和参数值  状态仍集中在 App.vue
 defineProps<{
   groups: FieldGroup[]
   activeGroupId: PartId
@@ -49,7 +48,11 @@ const emit = defineEmits<{
 }>()
 
 
-//参数表单上报变更
+/**
+ * 上报分组参数变化
+ * @param key   参数键
+ * @param event   输入事件
+ */
 function updateParam(key: ParamKey, event: Event) {
   emit('updateParam', key, Number((event.target as HTMLInputElement).value))
 }

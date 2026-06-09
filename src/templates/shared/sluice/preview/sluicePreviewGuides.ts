@@ -1,5 +1,6 @@
 import * as THREE from 'three'
-import type { DerivedValues, FieldGroup, PreviewParamKey, SluicePreviewParameters } from '../../types.js'
+import type { FieldGroup } from '../../../../types.js'
+import type { DerivedValues, PreviewParamKey, SluicePreviewParameters } from '../types.js'
 import { addDimensionLine, type PreviewContext } from './previewScene.js'
 
 interface ConnectionGuideKeys {

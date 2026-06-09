@@ -1,17 +1,5 @@
-import type { DerivedValues, FieldGroup, ProjectInfo, SluicePreviewParameters } from '../types'
-
-// 项目属性默认值与现有 Python 后端 params.py 保持一致。
-export const defaultProject: ProjectInfo = {
-  工程名称: '参数化自动出图',
-  文档名称: 'XXX水闸结构图',
-  图纸编号规则: 'HN-CBISHI-',
-  设计专业: '水工',
-  设计阶段: '施工图',
-  出图时间: '2026.06',
-  主材类型: 'C30钢筋混凝土',
-  垫层类型1: 'C15混凝土垫层',
-  垫层类型2: '碎石垫层',
-}
+import type { FieldGroup, ProjectInfo } from '../../../types'
+import type { DerivedValues, SluicePreviewParameters } from './types'
 
 // 基础参数默认值来自现有 params.py，单位沿用后端约定：尺寸为 cm，高程为 m。
 export const defaultParams: SluicePreviewParameters = {
