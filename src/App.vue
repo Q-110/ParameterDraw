@@ -1,0 +1,473 @@
+<template>
+  <main class="app-shell">
+    <aside class="layout-column sidebar">
+      <SchemePanel
+        ref="schemePanel"
+        :scheme-name="schemeName"
+        :scheme-path="schemePath"
+        :run-state="runState"
+        :validation-error-count="validationErrors.length"
+        :is-electron="isElectron"
+        :template-id="templateId"
+        :templates="templateDefinitions"
+        @update:scheme-name="schemeName = $event"
+        @update:template-id="switchTemplate"
+        @new="newScheme"
+        @open="openScheme"
+        @save="saveScheme"
+        @save-as="saveSchemeAs"
+        @run="runDrawing"
+        @browser-file-change="handleBrowserFile"
+      />
+
+      <ProjectSettings
+        section="project"
+        :project="project"
+        :output="output"
+        :params="params"
+        :is-electron="isElectron"
+        @update-project="updateProject"
+        @update-param="updateParam"
+        @select-output-directory="selectOutputDirectory"
+      />
+    </aside>
+
+    <section class="layout-column center-column">
+      <section class="parameter-area">
+        <ParameterForm
+          :groups="currentTemplate.groups"
+          :active-group-id="activeGroupId"
+          :active-group="activeGroup"
+          :params="params"
+          @update:active-group-id="activeGroupId = $event"
+          @update-param="updateParam"
+          @focus-field="setFieldFocus"
+          @blur-field="clearFieldFocus"
+        />
+
+        <ValidationPanel v-if="validationErrors.length > 0" :errors="validationErrors" />
+      </section>
+
+      <section class="center-bottom">
+        <ProjectSettings
+          section="basic"
+          :project="project"
+          :output="output"
+          :params="params"
+          :is-electron="isElectron"
+          @update-project="updateProject"
+          @update-param="updateParam"
+          @select-output-directory="selectOutputDirectory"
+        />
+        <DerivedPanel :elevation-rows="elevationRows" :geometry-rows="geometryRows" />
+      </section>
+    </section>
+
+    <section class="layout-column right-column">
+      <section class="panel preview-panel">
+        <SluicePreview
+          :params="previewParams"
+          :derived="previewDerived"
+          :groups="currentTemplate.groups"
+          :preview-options="currentTemplate.previewOptions"
+          :focus="focused"
+          :active-part-id="activeGroupId"
+        />
+      </section>
+      <RunLogPanel :logs="logs" @clear="logs = []" />
+    </section>
+  </main>
+</template>
+
+<script setup lang="ts">
+import { computed, onBeforeUnmount, reactive, ref } from 'vue'
+import DerivedPanel from './components/DerivedPanel.vue'
+import ParameterForm from './components/ParameterForm.vue'
+import ProjectSettings from './components/ProjectSettings.vue'
+import RunLogPanel from './components/RunLogPanel.vue'
+import SchemePanel from './components/SchemePanel.vue'
+import SluicePreview from './components/preview/SluicePreview.vue'
+import ValidationPanel from './components/ValidationPanel.vue'
+import { defaultParams, defaultProject } from './domain/parameters'
+import { defaultTemplate, getTemplateDefinition, templateDefinitions } from './domain/templates'
+import type {
+  DerivedValues,
+  FieldDefinition,
+  FocusTarget,
+  OutputInfo,
+  ParamKey,
+  ProjectInfo,
+  RunState,
+  SchemeData,
+  SluicePreviewParameters,
+  TemplateParameters,
+} from './types'
+
+type DisplayRow = [string, string]
+type BrowserDirectoryPicker = Window & {
+  showDirectoryPicker?: () => Promise<{ name: string }>
+}
+
+/**
+ * 维护当前方案的基础状态   所有派生值都由这些状态实时计算
+ */
+const schemeName = ref('默认水闸方案')
+const schemePath = ref<string | null>(null)
+const templateId = ref(defaultTemplate.id)
+const project = reactive<ProjectInfo>({ ...defaultProject })
+const output = reactive<OutputInfo>({ savepath: 'D:\\Desktop\\ParameterDrawOutput' })
+const params = reactive<TemplateParameters>({ ...defaultTemplate.defaults })
+const templateParameterCache = new Map<string, TemplateParameters>()
+const activeGroupId = ref(defaultTemplate.groups[0].id)
+const focused = ref<FocusTarget | null>(null)
+const logs = ref<string[]>([])
+// 运行状态
+// idle      空闲       初始值、清空日志、加载方案后
+// running   出图中     调用 window.sluice.runDrawing() 之前
+// success   出图成功   Python 进程退出码为 0
+// failed    出图失败   校验没通过、浏览器模式、Python 进程退出码非 0
+const runState = ref<RunState>('idle')
+const schemePanel = ref<{ openBrowserFilePicker: () => void } | null>(null)
+
+/**
+ * 实时接收主进程转发的 Python 日志  浏览器预览模式下该接口不存在
+ */
+const removeLogListener = window.sluice?.onDrawingLog((text) => {
+  logs.value.push(text.trimEnd())
+})
+
+onBeforeUnmount(() => {
+  removeLogListener?.()
+})
+
+/**
+ * 派生值和校验集中从同一套参数计算
+ */
+// 派生值
+const currentTemplate = computed(() => getTemplateDefinition(templateId.value) ?? defaultTemplate)
+const derived = computed(() => currentTemplate.value.computeDerived(params, project))
+const previewParams = computed(() => ({ ...defaultParams, ...params }) as SluicePreviewParameters)
+const previewDerived = computed(() => derived.value as unknown as DerivedValues)
+// 一致性验证
+const validationErrors = computed(() => currentTemplate.value.validate(params))
+// 参数分组
+const activeGroup = computed(
+  () => currentTemplate.value.groups.find((group) => group.id === activeGroupId.value) ?? currentTemplate.value.groups[0],
+)
+// 是否运行在 Electron 环境中
+const isElectron = computed(() => Boolean(window.sluice))
+
+
+/**
+ * 将派生值整理成展示行  模板只负责渲染  不重复业务公式
+ */
+// 高程数据
+const elevationRows = computed<DisplayRow[]>(() => [
+  ['底板高程', `${previewDerived.value.底板高程} m`],
+  ['闸顶高程', `${previewDerived.value.闸顶高程} m`],
+  ['上游墙顶高程', `${previewDerived.value.上游墙顶高程} m`],
+  ['消力池底板高程', `${previewDerived.value.消力池底板高程} m`],
+  ['下游底板高程', `${previewDerived.value.下游底板高程} m`],
+  ['下游墙顶高程', `${previewDerived.value.下游墙顶高程} m`],
+])
+// 几何尺寸
+const geometryRows = computed<DisplayRow[]>(() => [
+  ['闸门宽', `${formatNumber(previewDerived.value.闸门宽)} cm`],
+  ['闸总宽', `${formatNumber(previewDerived.value.闸总宽)} cm`],
+  ['上游下断面铺盖宽', `${formatNumber(previewDerived.value.上游渐变段下断面铺盖宽)} cm`],
+  ['下游上断面铺盖宽', `${formatNumber(previewDerived.value.下游渐变段上断面铺盖宽)} cm`],
+  ['渠坡比', previewDerived.value.渠坡比],
+  ['陡坡比', previewDerived.value.陡坡比],
+])
+/**
+ * 生成保存和出图共用的方案 JSON
+ */
+function makeScheme(): SchemeData {
+  return {
+    templateId: templateId.value,
+    name: schemeName.value,
+    project: { ...project },
+    output: { ...output },
+    parameters: { ...params },
+    derived: derived.value,
+  }
+}
+
+
+/**
+ * 新方案 重置为默认参数
+ */
+function newScheme() {
+  schemeName.value = '默认水闸方案'
+  schemePath.value = null
+  templateId.value = defaultTemplate.id
+  templateParameterCache.clear()
+  Object.assign(project, defaultProject)
+  Object.assign(output, { savepath: 'D:\\Desktop\\ParameterDrawOutput' })
+  Object.keys(params).forEach((key) => delete params[key])
+  Object.assign(params, defaultTemplate.defaults)
+  activeGroupId.value = defaultTemplate.groups[0].id
+  logs.value = []
+  runState.value = 'idle'
+}
+
+
+/**
+ * lectron 模式使用系统文件对话框  浏览器模式退化为子组件内的 file input
+ */
+async function openScheme() {
+  if (window.sluice) {
+    const file = await window.sluice.openScheme()
+    if (file) {
+      loadScheme(JSON.parse(file.content), file.filePath)
+    }
+    return
+  }
+  schemePanel.value?.openBrowserFilePicker()
+}
+
+
+/**
+ * 保存方案
+ */
+async function saveScheme() {
+  // 将当前方案序列化为 JSON 字符串
+  const content = JSON.stringify(makeScheme(), null, 2)
+
+  if (window.sluice) {
+    // Electron 环境   通过 IPC 写入本地文件
+    const savedPath = await window.sluice.saveScheme({ filePath: schemePath.value, name: schemeName.value, content })
+    if (savedPath) {
+      schemePath.value = savedPath   //更新当前方案路径
+    }
+    return
+  }
+
+  // 浏览器预览模式降级   存 localStorage 并下载文件
+  localStorage.setItem('sluice.scheme', content)
+  downloadScheme(content)
+}
+
+
+/**
+ * 另存为
+ */
+async function saveSchemeAs() {
+  const content = JSON.stringify(makeScheme(), null, 2)
+  if (window.sluice) {
+    const savedPath = await window.sluice.saveSchemeAs({ name: schemeName.value, content })
+    if (savedPath) {
+      schemePath.value = savedPath
+    }
+    return
+  }
+  downloadScheme(content)
+}
+
+
+/**
+ * 出图前先执行前端公式一致性校验  避免明显错误参数进入 Inventor 流程
+  */
+async function runDrawing() {
+  logs.value = []
+
+  // 前端校验参数
+  if (validationErrors.value.length > 0) {
+    runState.value = 'failed'
+    logs.value.push('参数校验未通过，已停止出图。')
+    validationErrors.value.forEach((error) => logs.value.push(error))
+    return
+  }
+
+  // 检查 window.sluice 是否存在
+  if (!window.sluice) {
+    runState.value = 'failed'
+    logs.value.push('当前是浏览器预览模式，出图需要在 Electron 桌面窗口中执行。')
+    return
+  }
+
+  // 设置状态
+  runState.value = 'running'
+
+  // 进去 preload
+  const result = await window.sluice.runDrawing(makeScheme())
+
+  // 更新状态
+  runState.value = result.success ? 'success' : 'failed'
+
+  if (result.logs.length > 0) {
+    logs.value.push(...result.logs.map((line) => line.trimEnd()))
+  }
+  logs.value.push(result.success ? `出图完成：${result.outputDir}` : '出图失败！')
+}
+
+
+/**
+ * 加载方案时保留默认值作为兜底  旧方案缺字段时仍能打开
+ * @param raw
+ * @param filePath
+ */
+function loadScheme(raw: Partial<SchemeData>, filePath: string | null) {
+  const template = raw.templateId ? (getTemplateDefinition(raw.templateId) ?? defaultTemplate) : defaultTemplate
+
+  schemeName.value = raw.name || '未命名方案'
+  schemePath.value = filePath
+  templateId.value = template.id
+  Object.assign(project, defaultProject, raw.project)
+  Object.assign(output, { savepath: 'D:\\Desktop\\ParameterDrawOutput' }, raw.output)
+  Object.keys(params).forEach((key) => delete params[key])
+  Object.assign(params, template.defaults)
+  Object.keys(template.defaults).forEach((key) => {
+    if (raw.parameters && key in raw.parameters) {
+      params[key] = raw.parameters[key]
+    }
+  })
+  templateParameterCache.clear()
+  templateParameterCache.set(template.id, { ...params })
+  activeGroupId.value = template.groups[0].id
+  logs.value = []
+  runState.value = 'idle'
+}
+
+
+/**
+ * 浏览器预览模式没有 Electron 文件系统能力  只用于本地调试方案导入
+ * @param event
+ */
+function handleBrowserFile(event: Event) {
+  const input = event.target as HTMLInputElement   // 获取用户选择的文件
+  const file = input.files?.[0]
+  if (!file) {
+    return
+  }
+  const reader = new FileReader()
+  reader.onload = () => loadScheme(JSON.parse(String(reader.result)), file.name)
+  reader.readAsText(file, 'utf-8')
+  input.value = ''
+}
+
+
+/**
+ * 子组件只上报字段变化
+ * @param key
+ * @param value
+ */
+function updateProject(key: keyof ProjectInfo, value: string) {
+  project[key] = value
+}
+
+
+/**
+ * 选择出图保存目录
+ */
+async function selectOutputDirectory() {
+  if (window.sluice) {
+    const selectedPath = await window.sluice.selectOutputDirectory()
+    if (selectedPath) {
+      output.savepath = selectedPath
+    }
+    return
+  }
+
+  const directoryPicker = (window as BrowserDirectoryPicker).showDirectoryPicker
+  if (!directoryPicker) {
+    logs.value.push('当前浏览器不支持选择本地文件夹，浏览器预览模式只能手动保留当前保存路径。')
+    return
+  }
+
+  try {
+    const directory = await directoryPicker()
+    if (directory.name) {
+      output.savepath = directory.name
+      logs.value.push(`浏览器预览模式无法获取绝对路径，已使用相对路径：${directory.name}`)
+    }
+  } catch {
+    // 用户取消浏览器目录选择时不更新路径
+  }
+}
+
+
+/**
+ * 参数变化
+ * @param key
+ * @param value
+ */
+function updateParam(key: ParamKey, value: number) {
+  params[key] = value
+}
+
+/**
+ * 切换模板
+ * 同名字段继承当前值   已编辑过的目标模板优先恢复缓存
+ */
+function switchTemplate(nextTemplateId: string) {
+  const nextTemplate = getTemplateDefinition(nextTemplateId)
+  if (!nextTemplate || nextTemplate.id === templateId.value) {
+    return
+  }
+
+  templateParameterCache.set(templateId.value, { ...params })
+  const cached = templateParameterCache.get(nextTemplate.id)
+  const nextParameters: TemplateParameters = cached ? { ...cached } : { ...nextTemplate.defaults }
+
+  if (!cached) {
+    Object.keys(nextTemplate.defaults).forEach((key) => {
+      if (key in params) {
+        nextParameters[key] = params[key]
+      }
+    })
+  }
+
+  Object.keys(params).forEach((key) => delete params[key])
+  Object.assign(params, nextParameters)
+  templateId.value = nextTemplate.id
+  activeGroupId.value = nextTemplate.groups[0].id
+  focused.value = null
+  logs.value = []
+  runState.value = 'idle'
+}
+
+
+/**
+ * 输入框聚焦时把字段映射到 3D 部件区域      高亮对应几何
+ * @param field
+ */
+function setFieldFocus(field: FieldDefinition) {
+  focused.value = {
+    part: field.part,
+    region: field.region,
+    guideRegion: field.guideRegion,
+    key: field.label,
+  }
+}
+
+
+/**
+ * 清空当前聚焦字段
+ */
+function clearFieldFocus() {
+  focused.value = null
+}
+
+
+/**
+ * 浏览器预览模式下通过下载文件模拟“另存方案”
+ * @param content
+ */
+function downloadScheme(content: string) {
+  const blob = new Blob([content], { type: 'application/json;charset=utf-8' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `${schemeName.value || '水闸方案'}.json`
+  link.click()
+  URL.revokeObjectURL(link.href)
+}
+
+/**
+ * 格式化
+ * @param value
+ */
+function formatNumber(value: number) {
+  return Number.isInteger(value) ? String(value) : value.toFixed(2)
+}
+</script>

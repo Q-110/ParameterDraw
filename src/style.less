@@ -1,0 +1,534 @@
+:root {
+  // 全局字体和基础颜色保持工程工具风格  避免过强装饰性
+  font-family: "Microsoft YaHei", "Segoe UI", system-ui, sans-serif;
+  color: #17211f;
+  background: #f4f6f7;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  min-width: 1180px;
+  letter-spacing: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 1px solid #c9d2d0;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f2d2a;
+  min-height: 34px;
+  padding: 0 12px;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: #5f7f79;
+    background: #f6faf9;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
+
+input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #cfd8d5;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #17211f;
+  min-height: 34px;
+  padding: 6px 9px;
+
+  &[readonly] {
+    background: #f8faf9;
+    cursor: default;
+  }
+
+  &:focus {
+    border-color: #2f6f73;
+    outline: 2px solid rgba(47, 111, 115, 0.18);
+  }
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+h3 {
+  font-size: 14px;
+  line-height: 1.2;
+  color: #52625f;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: minmax(284px, 0.4fr) minmax(629px, 1fr) minmax(440px, 0.7fr);
+  gap: 12px;
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+  background: #e8eeed;
+  padding: 12px;
+}
+
+.layout-column {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.sidebar {
+  grid-template-rows: minmax(260px, 0.42fr) minmax(420px, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.center-column,
+.right-column {
+  grid-template-rows: minmax(420px, 1fr) minmax(220px, 0.36fr);
+}
+
+.parameter-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+
+  .form-panel {
+    flex: 1;
+  }
+}
+
+.center-bottom {
+  display: grid;
+  grid-template-columns: minmax(242px, 0.5fr) minmax(0, 1fr);
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.panel {
+  border: 1px solid #d5ddda;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 1px 2px rgba(21, 34, 31, 0.05);
+  min-height: 0;
+
+  &:not(.form-panel):not(.derived-panel):not(.validation-panel):not(.log-panel) {
+    padding: 14px;
+  }
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.scheme-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  p {
+    color: #687774;
+    font-size: 12px;
+  }
+}
+
+.path-line {
+  color: #687774;
+  font-size: 12px;
+}
+
+.scheme-name {
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.template-field {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+
+  span {
+    color: #667085;
+    font-size: 12px;
+  }
+
+  select {
+    width: 100%;
+  }
+}
+
+.run-state {
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  background: #edf1f0;
+  color: #53615e;
+
+  &.running {
+    background: #fff4d9;
+    color: #7b5700;
+  }
+
+  &.success {
+    background: #e5f4ea;
+    color: #1e6b3e;
+  }
+
+  &.failed {
+    background: #fde8e3;
+    color: #9a321e;
+  }
+}
+
+.button-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.primary-action {
+  border-color: #1f6b67;
+  background: #1f6b67;
+  color: #ffffff;
+  font-weight: 700;
+
+  &:hover:not(:disabled) {
+    background: #185a56;
+    border-color: #185a56;
+  }
+}
+
+.compact-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+
+  &.two-columns {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  span {
+    color: #4f5d5a;
+    font-size: 12px;
+  }
+}
+
+.path-picker {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 64px;
+  gap: 8px;
+}
+
+.field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  span {
+    color: #4f5d5a;
+    font-size: 12px;
+  }
+}
+
+.form-panel,
+.derived-panel,
+.validation-panel,
+.log-panel {
+  padding: 14px;
+}
+
+.scheme-panel,
+.project-panel,
+.basic-panel,
+.derived-panel {
+  height: 100%;
+  overflow: auto;
+}
+
+.form-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.group-tabs {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+  margin-bottom: 14px;
+
+  button {
+    padding: 0 8px;
+    white-space: nowrap;
+
+    &.active {
+      border-color: #225f63;
+      background: #e2f0ee;
+      color: #174a4d;
+      font-weight: 700;
+    }
+  }
+}
+
+.parameter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start;
+  gap: 12px;
+  min-height: 0;
+  overflow: auto;
+}
+
+.unit-input {
+  position: relative;
+
+  input {
+    padding-right: 38px;
+    appearance: textfield;
+    -moz-appearance: textfield;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      margin: 0;
+      -webkit-appearance: none;
+    }
+  }
+
+  em {
+    position: absolute;
+    top: 50%;
+    right: 9px;
+    transform: translateY(-50%);
+    color: #70807c;
+    font-size: 12px;
+    font-style: normal;
+    pointer-events: none;
+  }
+}
+
+.derived-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+dl {
+  display: grid;
+  grid-template-columns: minmax(96px, 1fr) minmax(50px, 0.5fr);
+  gap: 7px 0;
+  margin: 10px 0 0;
+}
+
+dt {
+  color: #5a6865;
+  font-size: 12px;
+}
+
+dd {
+  margin: 0;
+  color: #182522;
+  font-size: 13px;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.validation-panel {
+  border-color: #efb3a6;
+  background: #fff8f6;
+
+  ul {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    color: #8a2d1b;
+    font-size: 13px;
+  }
+}
+
+.preview-grid {
+  // 6 个部件使用固定三列网格  便于快速对比各段几何变化
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+
+  &.single {
+    grid-template-columns: 1fr;
+
+    .preview-card {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      border: 0;
+    }
+
+    .preview-canvas {
+      flex: 1;
+      height: auto;
+      min-height: 0;
+    }
+  }
+}
+
+.preview-panel {
+  display: flex;
+  padding: 0;
+  overflow: hidden;
+}
+
+.preview-card {
+  border: 1px solid #d5ddda;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+  min-height: 0;
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 42px;
+    border-bottom: 1px solid #edf1f0;
+    padding: 0 12px;
+    color: #283633;
+    font-weight: 700;
+  }
+
+  strong {
+    color: #936300;
+    font-size: 12px;
+    font-weight: 700;
+  }
+}
+
+.preview-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reset-view-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  padding: 2px;
+  color: #687774;
+  background: transparent;
+  cursor: pointer;
+
+  &:hover {
+    color: #2f6f63;
+  }
+}
+
+.preview-canvas {
+  width: 100%;
+  height: clamp(260px, 38vh, 329px);
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.log-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+
+  pre {
+    flex: 1;
+    height: auto;
+    min-height: 0;
+    margin: 12px 0 0;
+    overflow: auto;
+    border: 1px solid #d8e0de;
+    border-radius: 6px;
+    background: #f8faf9;
+    color: #283633;
+    padding: 10px;
+    font-family: Consolas, "Microsoft YaHei", monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+}
+
+// 全局滚动条样式
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: #c5cec9;
+
+  &:hover {
+    background: #8a9996;
+  }
+}
