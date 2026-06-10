@@ -1,14 +1,14 @@
 import {
   sluiceBasicFields,
   sluiceDerivedSections,
-} from '../sluice/configuration'
+} from '../configuration'
 import {
   computeDerived as computeSluiceDerived,
   defaultParams,
   fieldGroups,
   validateParams,
-} from '../sluice/model'
-import { SluicePreview } from '../sluice/preview'
+} from '../model'
+import { SluicePreview } from '../preview'
 
 const trafficParameterKeys = new Set([
   '交通桥宽',

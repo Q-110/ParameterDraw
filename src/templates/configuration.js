@@ -1,4 +1,4 @@
-// 基础设置字段与后端 params.py 使用同名参数
+// 基础设置字段
 export const sluiceBasicFields = [
   { key: '底板顶部标高', label: '底板顶部标高', unit: 'm', step: 0.01 },
   { key: '垫层超出底面距离', label: '垫层超出底面距离', unit: 'cm' },
@@ -6,7 +6,7 @@ export const sluiceBasicFields = [
   { key: '止水偏移表面', label: '止水偏移表面', unit: 'cm' },
 ]
 
-// 派生值只负责展示   实际计算集中在 model 目录
+// 派生值
 export const sluiceDerivedSections = [
   {
     id: 'elevation',
