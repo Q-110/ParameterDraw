@@ -14,7 +14,7 @@ import { addTransitionGuides } from './transition'
 export function addSluicePreviewGuides(context, params, derived, options) {
   assertGuideCoverage(options.groups)
   if (context.part === 'gate') {
-    addGateGuides(context, params, derived, options.showTrafficBridge)
+    addGateGuides(context, params, derived)
   } else if (context.part === 'stilling') {
     addStillingGuides(context, params, derived)
   } else if (context.part === 'upstreamConnection') {

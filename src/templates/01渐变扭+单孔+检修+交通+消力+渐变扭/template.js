@@ -35,9 +35,7 @@ const template = {
         params: parameters,
         derived,
         groups: currentGroups,
-        previewOptions: {
-          showTrafficBridge: true,
-        },
+        previewOptions: {},
       }
     },
   },

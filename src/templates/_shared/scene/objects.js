@@ -39,6 +39,7 @@ export function addBox(
   rotateX = 0,
   isGuide = false,
 ) {
+  if (!Number.isFinite(width) || !Number.isFinite(height) || !Number.isFinite(depth)) return
   // 创建几何体
   const geometry = new THREE.BoxGeometry(
     Math.max(width, 0.01),
@@ -173,6 +174,10 @@ export function addDimensionLine(
   extensionStart,
   extensionEnd,
 ) {
+  if (
+    !Number.isFinite(start.x) || !Number.isFinite(start.y) || !Number.isFinite(start.z) ||
+    !Number.isFinite(end.x) || !Number.isFinite(end.y) || !Number.isFinite(end.z)
+  ) return
   const tick = tickAxis
     .clone()
     .normalize()

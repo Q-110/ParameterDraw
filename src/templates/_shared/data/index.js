@@ -76,9 +76,8 @@ export const downstreamTransitionKeys = {
  * 生成闸室几何和尺寸线共用数据
  * @param params
  * @param derived
- * @param showTrafficBridge
  */
-export function makeGatePreviewData(params, derived, showTrafficBridge) {
+export function makeGatePreviewData(params, derived) {
   const width = cm(derived.闸总宽)
   const length = cm(params.闸室长)
   const pierHeight = cm(params.闸墩高)
@@ -92,24 +91,22 @@ export function makeGatePreviewData(params, derived, showTrafficBridge) {
   const serviceWidth = cm(params.检修桥板宽)
   const serviceThick = cm(params.检修桥板厚)
   const topY = floorThick / 2 + pierHeight
-  let trafficBridge = null
 
-  if (showTrafficBridge) {
-    const bridgeWidth = cm(params.交通桥宽)
-    const bridgeThick = cm(params.交通桥厚)
-    const upstreamZ = length / 2 - cm(params.桥边距上游)
-    trafficBridge = {
-      width: bridgeWidth,
-      thick: bridgeThick,
-      upstreamZ,
-      downstreamZ: upstreamZ - bridgeWidth,
-      centerZ: upstreamZ - bridgeWidth / 2,
-      approachSlabLength: cm(params.搭板长),
-      centerY: topY + serviceThick + bridgeThick / 2,
-      topY: topY + serviceThick + bridgeThick,
-      edgeThick: cm(params.交通桥护边厚),
-      edgeHeight: cm(params.交通桥护边高),
-    }
+  // 始终读取交通桥参数   模板不提供则值为 undefined -> cm() 返回 NaN -> addBox/addDimensionLine 跳过
+  const bridgeWidth = cm(params.交通桥宽)
+  const bridgeThick = cm(params.交通桥厚)
+  const upstreamZ = length / 2 - cm(params.桥边距上游)
+  const trafficBridge = {
+    width: bridgeWidth,
+    thick: bridgeThick,
+    upstreamZ,
+    downstreamZ: upstreamZ - bridgeWidth,
+    centerZ: upstreamZ - bridgeWidth / 2,
+    approachSlabLength: cm(params.搭板长),
+    centerY: topY + serviceThick + bridgeThick / 2,
+    topY: topY + serviceThick + bridgeThick,
+    edgeThick: cm(params.交通桥护边厚),
+    edgeHeight: cm(params.交通桥护边高),
   }
 
   return {

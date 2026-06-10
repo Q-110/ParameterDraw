@@ -7,7 +7,7 @@ import { addXGuide, addYGuide, addZGuide } from './primitives'
  * @param params
  * @param derived
  */
-export function addGateGuides(context, params, derived, showTrafficBridge) {
+export function addGateGuides(context, params, derived) {
   const {
     width,
     length,
@@ -29,7 +29,7 @@ export function addGateGuides(context, params, derived, showTrafficBridge) {
     firstOpeningX,
     topY,
     trafficBridge,
-  } = makeGatePreviewData(params, derived, showTrafficBridge)
+  } = makeGatePreviewData(params, derived)
   const maxSize = Math.max(width, length, pierHeight)
   const offset = Math.max(maxSize * 0.06, 0.1)
   const tickSize = Math.max(maxSize * 0.04, 0.1)
@@ -171,60 +171,59 @@ export function addGateGuides(context, params, derived, showTrafficBridge) {
     doorUpstreamZ + serviceWidth / 2,
     tickSize,
   )
-  if (trafficBridge) {
-    addZGuide(
-      context,
-      '交通桥宽',
-      sideX,
-      trafficBridge.topY,
-      trafficBridge.downstreamZ,
-      trafficBridge.upstreamZ,
-      tickSize,
-    )
-    addYGuide(
-      context,
-      '交通桥厚',
-      width / 2 + offset,
-      topY + serviceThick,
-      trafficBridge.topY,
-      trafficBridge.downstreamZ / 2 + offset,
-      tickSize,
-    )
-    addZGuide(
-      context,
-      '桥边距上游',
-      width / 2 + offset,
-      topY + offset,
-      trafficBridge.upstreamZ,
-      length / 2,
-      tickSize,
-    )
-    addXGuide(
-      context,
-      '搭板长',
-      width / 2,
-      width / 2 + trafficBridge.approachSlabLength,
-      trafficBridge.topY + offset,
-      trafficBridge.downstreamZ,
-      tickSize,
-    )
-    addXGuide(
-      context,
-      '交通桥护边厚',
-      width / 2,
-      width / 2 - trafficBridge.edgeThick,
-      trafficBridge.topY,
-      trafficBridge.downstreamZ / 2 + offset,
-      tickSize,
-    )
-    addYGuide(
-      context,
-      '交通桥护边高',
-      width / 2 + offset,
-      trafficBridge.topY,
-      trafficBridge.topY + trafficBridge.edgeHeight,
-      trafficBridge.downstreamZ / 2 + offset,
-      tickSize,
-    )
-  }
+  // 交通桥尺寸辅助线   始终创建   addDimensionLine 内部按有效性判断
+  addZGuide(
+    context,
+    '交通桥宽',
+    sideX,
+    trafficBridge.topY,
+    trafficBridge.downstreamZ,
+    trafficBridge.upstreamZ,
+    tickSize,
+  )
+  addYGuide(
+    context,
+    '交通桥厚',
+    width / 2 + offset,
+    topY + serviceThick,
+    trafficBridge.topY,
+    trafficBridge.downstreamZ / 2 + offset,
+    tickSize,
+  )
+  addZGuide(
+    context,
+    '桥边距上游',
+    width / 2 + offset,
+    topY + offset,
+    trafficBridge.upstreamZ,
+    length / 2,
+    tickSize,
+  )
+  addXGuide(
+    context,
+    '搭板长',
+    width / 2,
+    width / 2 + trafficBridge.approachSlabLength,
+    trafficBridge.topY + offset,
+    trafficBridge.downstreamZ,
+    tickSize,
+  )
+  addXGuide(
+    context,
+    '交通桥护边厚',
+    width / 2,
+    width / 2 - trafficBridge.edgeThick,
+    trafficBridge.topY,
+    trafficBridge.downstreamZ / 2 + offset,
+    tickSize,
+  )
+  addYGuide(
+    context,
+    '交通桥护边高',
+    width / 2 + offset,
+    trafficBridge.topY,
+    trafficBridge.topY + trafficBridge.edgeHeight,
+    trafficBridge.downstreamZ / 2 + offset,
+    tickSize,
+  )
 }

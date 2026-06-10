@@ -108,7 +108,6 @@ function rebuildPreview() {
   // 构建
   buildSluicePart(context, props.params, props.derived, {
     groups: props.groups,
-    showTrafficBridge: props.previewOptions.showTrafficBridge,
   })
 
   // 部件按真实尺寸生成  ->  整体缩放到预览窗口

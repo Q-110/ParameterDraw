@@ -7,7 +7,7 @@ import { addBox } from '../scene/objects'
  * @param params
  * @param derived
  */
-export function buildGate(context, params, derived, showTrafficBridge) {
+export function buildGate(context, params, derived) {
   const {
     width,
     length,
@@ -25,7 +25,7 @@ export function buildGate(context, params, derived, showTrafficBridge) {
     toothHeight,
     toothWidth,
     trafficBridge,
-  } = makeGatePreviewData(params, derived, showTrafficBridge)
+  } = makeGatePreviewData(params, derived)
   // 底板
   addBox(context, 'floor', width, floorThick, length, 0, 0, 0)
   // 左右边墩
@@ -103,39 +103,37 @@ export function buildGate(context, params, derived, showTrafficBridge) {
     floorThick / 2 + pierHeight + serviceThick / 2,
     doorUpstreamZ,
   )
-  if (trafficBridge) {
-    // 有交通桥模板才读取交通桥参数并创建对应构件
-    addBox(
-      context,
-      'trafficBridge',
-      width,
-      trafficBridge.thick,
-      trafficBridge.width,
-      0,
-      trafficBridge.centerY,
-      trafficBridge.centerZ,
-    )
-    addBox(
-      context,
-      'approachSlab',
-      trafficBridge.approachSlabLength,
-      trafficBridge.thick,
-      trafficBridge.width,
-      -width / 2 - trafficBridge.approachSlabLength / 2,
-      trafficBridge.centerY,
-      trafficBridge.centerZ,
-    )
-    addBox(
-      context,
-      'approachSlab',
-      trafficBridge.approachSlabLength,
-      trafficBridge.thick,
-      trafficBridge.width,
-      width / 2 + trafficBridge.approachSlabLength / 2,
-      trafficBridge.centerY,
-      trafficBridge.centerZ,
-    )
-  }
+  // 交通桥   始终创建   addBox 内部按维度有效性判断
+  addBox(
+    context,
+    'trafficBridge',
+    width,
+    trafficBridge.thick,
+    trafficBridge.width,
+    0,
+    trafficBridge.centerY,
+    trafficBridge.centerZ,
+  )
+  addBox(
+    context,
+    'approachSlab',
+    trafficBridge.approachSlabLength,
+    trafficBridge.thick,
+    trafficBridge.width,
+    -width / 2 - trafficBridge.approachSlabLength / 2,
+    trafficBridge.centerY,
+    trafficBridge.centerZ,
+  )
+  addBox(
+    context,
+    'approachSlab',
+    trafficBridge.approachSlabLength,
+    trafficBridge.thick,
+    trafficBridge.width,
+    width / 2 + trafficBridge.approachSlabLength / 2,
+    trafficBridge.centerY,
+    trafficBridge.centerZ,
+  )
   // 齿墙
   addBox(
     context,

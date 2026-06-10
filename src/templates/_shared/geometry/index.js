@@ -13,7 +13,7 @@ import { buildTransition } from './transition'
  */
 export function buildSluicePart(context, params, derived, options) {
   if (context.part === 'gate') {
-    buildGate(context, params, derived, options.showTrafficBridge)
+    buildGate(context, params, derived)
   } else if (context.part === 'stilling') {
     buildStilling(context, params, derived)
   } else if (context.part === 'upstreamConnection') {
