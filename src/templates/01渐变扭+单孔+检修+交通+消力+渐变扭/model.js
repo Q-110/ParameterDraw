@@ -130,6 +130,9 @@ const rawGroups = [
       { key: '搭板长', label: '搭板长', unit: 'cm', part: 'gate', region: 'approachSlab' },
       { key: '交通桥护边厚', label: '交通桥护边厚', unit: 'cm', part: 'gate', region: 'trafficBridge' },
       { key: '交通桥护边高', label: '交通桥护边高', unit: 'cm', part: 'gate', region: 'trafficBridge' },
+      { key: '闸门宽', label: '闸门宽', unit: 'cm', readonly: true, decimals: 2 },
+      { key: '闸总宽', label: '闸总宽', unit: 'cm', readonly: true, decimals: 2 },
+      { key: '闸孔数', label: '闸孔数', readonly: true },
     ],
   },
   {
@@ -149,6 +152,8 @@ const rawGroups = [
       { key: '消力池斜墙段高度', label: '斜墙段高度', unit: 'cm', part: 'stilling', region: 'wall' },
       { key: '消力坎高', label: '消力坎高', unit: 'cm', part: 'stilling', region: 'baffle' },
       { key: '消力坎顶宽', label: '消力坎顶宽', unit: 'cm', part: 'stilling', region: 'baffle' },
+      { key: '消力池陡坡段墙高', label: '陡坡段墙高', unit: 'cm', readonly: true },
+      { key: '消力池底板宽度', label: '底板宽度', unit: 'cm', readonly: true, decimals: 2 },
     ],
   },
   {
@@ -166,6 +171,9 @@ const rawGroups = [
       { key: '上游连接段坡板厚度', label: '坡板厚度', unit: 'cm', part: 'upstreamConnection', region: 'slope' },
       { key: '上游连接段坡齿厚度', label: '坡齿厚度', unit: 'cm', part: 'upstreamConnection', region: 'slope' },
       { key: '上游连接段坡齿宽度', label: '坡齿宽度', unit: 'cm', part: 'upstreamConnection', region: 'slope' },
+      { key: '上游连接段坡面高度', label: '坡面高度', unit: 'cm', readonly: true },
+      { key: '上游连接段坡面宽度', label: '坡面宽度', unit: 'cm', readonly: true },
+      { key: '上游连接段渠底板宽', label: '渠底板宽', unit: 'cm', readonly: true, decimals: 2 },
     ],
   },
   {
@@ -190,6 +198,19 @@ const rawGroups = [
       { key: '上游渐变段断面铺盖厚', label: '断面铺盖厚', unit: 'cm', part: 'upstreamTransition', region: 'floor' },
       { key: '上游渐变段铺盖齿墙高', label: '铺盖齿墙高', unit: 'cm', part: 'upstreamTransition', region: 'tooth' },
       { key: '上游渐变段铺盖齿墙宽', label: '铺盖齿墙宽', unit: 'cm', part: 'upstreamTransition', region: 'tooth' },
+      { key: '上游渐变段上断面趾高', label: '上断面趾高', unit: 'cm', readonly: true },
+      { key: '上游渐变段上断面趾宽', label: '上断面趾宽', unit: 'cm', readonly: true },
+      { key: '上游渐变段上断面踵高', label: '上断面踵高', unit: 'cm', readonly: true },
+      { key: '上游渐变段上断面顶端高', label: '上断面顶端高', unit: 'cm', readonly: true },
+      { key: '上游渐变段上断面顶端宽', label: '上断面顶端宽', unit: 'cm', readonly: true },
+      { key: '上游渐变段下断面趾高', label: '下断面趾高', unit: 'cm', readonly: true },
+      { key: '上游渐变段下断面趾宽', label: '下断面趾宽', unit: 'cm', readonly: true },
+      { key: '上游渐变段下断面踵高', label: '下断面踵高', unit: 'cm', readonly: true },
+      { key: '上游渐变段下断面顶端宽', label: '下断面顶端宽', unit: 'cm', readonly: true },
+      { key: '上游渐变段下断面顶端高', label: '下断面顶端高', unit: 'cm', readonly: true },
+      { key: '上游渐变段中末断面距离', label: '中末断面距离', unit: 'cm', readonly: true },
+      { key: '上游渐变段下断面铺盖宽', label: '下断面铺盖宽', unit: 'cm', readonly: true, decimals: 2 },
+      { key: '上游渐变段中断面铺盖宽', label: '中断面铺盖宽', unit: 'cm', readonly: true, decimals: 2 },
     ],
   },
   {
@@ -207,6 +228,9 @@ const rawGroups = [
       { key: '下游连接段坡板厚度', label: '坡板厚度', unit: 'cm', part: 'downstreamConnection', region: 'slope' },
       { key: '下游连接段坡齿厚度', label: '坡齿厚度', unit: 'cm', part: 'downstreamConnection', region: 'slope' },
       { key: '下游连接段坡齿宽度', label: '坡齿宽度', unit: 'cm', part: 'downstreamConnection', region: 'slope' },
+      { key: '下游连接段坡面高度', label: '坡面高度', unit: 'cm', readonly: true },
+      { key: '下游连接段坡面宽度', label: '坡面宽度', unit: 'cm', readonly: true },
+      { key: '下游连接段渠底板宽', label: '渠底板宽', unit: 'cm', readonly: true, decimals: 2 },
     ],
   },
   {
@@ -228,21 +252,39 @@ const rawGroups = [
       { key: '下游渐变段断面铺盖厚', label: '断面铺盖厚', unit: 'cm', part: 'downstreamTransition', region: 'floor' },
       { key: '下游渐变段铺盖齿墙高', label: '铺盖齿墙高', unit: 'cm', part: 'downstreamTransition', region: 'tooth' },
       { key: '下游渐变段铺盖齿墙宽', label: '铺盖齿墙宽', unit: 'cm', part: 'downstreamTransition', region: 'tooth' },
+      { key: '下游渐变段中断面坡高', label: '中断面坡高', unit: 'cm', readonly: true },
+      { key: '下游渐变段上断面铺盖宽', label: '上断面铺盖宽', unit: 'cm', readonly: true, decimals: 2 },
+      { key: '下游渐变段上断面坡高', label: '上断面坡高', unit: 'cm', readonly: true },
+      { key: '下游渐变段上断面趾高', label: '上断面趾高', unit: 'cm', readonly: true },
+      { key: '下游渐变段上断面趾宽', label: '上断面趾宽', unit: 'cm', readonly: true },
+      { key: '下游渐变段上断面踵高', label: '上断面踵高', unit: 'cm', readonly: true },
+      { key: '下游渐变段上断面顶端高', label: '上断面顶端高', unit: 'cm', readonly: true },
+      { key: '下游渐变段上断面顶端宽', label: '上断面顶端宽', unit: 'cm', readonly: true },
+      { key: '下游渐变段下断面坡高', label: '下断面坡高', unit: 'cm', readonly: true },
+      { key: '下游渐变段下断面趾高', label: '下断面趾高', unit: 'cm', readonly: true },
+      { key: '下游渐变段下断面趾宽', label: '下断面趾宽', unit: 'cm', readonly: true },
+      { key: '下游渐变段下断面踵高', label: '下断面踵高', unit: 'cm', readonly: true },
+      { key: '下游渐变段下断面顶端宽', label: '下断面顶端宽', unit: 'cm', readonly: true },
+      { key: '下游渐变段下断面顶端高', label: '下断面顶端高', unit: 'cm', readonly: true },
+      { key: '下游渐变段中首断面距离', label: '中首断面距离', unit: 'cm', readonly: true },
+      { key: '下游渐变段中断面铺盖宽', label: '中断面铺盖宽', unit: 'cm', readonly: true, decimals: 2 },
     ],
   },
 ]
 
+// 在 rawGroup 的每个字段上自动生成 guideRegion   用于 3D 预览中参数与尺寸线的精确高亮联动
 export const groups = rawGroups.map((group) => ({
   ...group,
   fields: group.fields.map((field) => ({
     ...field,
-    guideRegion: field.unit === 'cm' ? `${field.part}.${field.key}` : undefined,
+    guideRegion: (field.unit === 'cm' && field.part) ? `${field.part}.${field.key}` : undefined,
   })),
 }))
 
 // ==================== 派生计算 ====================
 
 export function computeDerived(params, project) {
+  const 闸孔数 = 1
   const 闸门宽 = params.闸孔净宽 + 2 * params.门槽入闸墩深
   const 闸总宽 = params.闸孔净宽 + 2 * params.边墩厚
   const 上游渐变段中末断面距离 = params.上游渐变段中首断面距离
@@ -267,6 +309,27 @@ export function computeDerived(params, project) {
   const 下游连接段坡面宽度 = params.下游渐变段下断面坡宽
   const 下游连接段渠底板宽 =
     params.下游渐变段下断面铺盖宽 + 2 * params.下游渐变段中断面趾宽
+  const 上游渐变段上断面趾高 = params.上游渐变段中断面趾高
+  const 上游渐变段上断面趾宽 = params.上游渐变段中断面趾宽
+  const 上游渐变段上断面踵高 = params.上游渐变段中断面踵高
+  const 上游渐变段上断面顶端高 = params.上游渐变段中断面顶端高
+  const 上游渐变段上断面顶端宽 = params.上游渐变段中断面顶端宽
+  const 上游渐变段下断面趾高 = params.上游渐变段中断面趾高
+  const 上游渐变段下断面趾宽 = params.上游渐变段中断面趾宽
+  const 上游渐变段下断面踵高 = params.上游渐变段中断面踵高
+  const 上游渐变段下断面顶端宽 = params.上游渐变段中断面顶端宽
+  const 上游渐变段下断面顶端高 = params.上游渐变段中断面顶端高
+  const 下游渐变段上断面趾高 = params.下游渐变段中断面趾高
+  const 下游渐变段上断面趾宽 = params.下游渐变段中断面趾宽
+  const 下游渐变段上断面踵高 = params.下游渐变段中断面踵高
+  const 下游渐变段上断面顶端高 = params.下游渐变段中断面顶端高
+  const 下游渐变段上断面顶端宽 = params.下游渐变段中断面顶端宽
+  const 下游渐变段下断面坡高 = 下游渐变段中断面坡高
+  const 下游渐变段下断面趾高 = params.下游渐变段中断面趾高
+  const 下游渐变段下断面趾宽 = params.下游渐变段中断面趾宽
+  const 下游渐变段下断面踵高 = params.下游渐变段中断面踵高
+  const 下游渐变段下断面顶端宽 = params.下游渐变段中断面顶端宽
+  const 下游渐变段下断面顶端高 = params.下游渐变段中断面顶端高
   const 底板高程 = params.底板顶部标高.toFixed(2)
   const 闸顶高程 = (params.底板顶部标高 + params.闸墩高 / 100).toFixed(2)
   const 上游墙顶高程 = (params.底板顶部标高 + 上游连接段坡面高度 / 100).toFixed(2)
@@ -284,6 +347,8 @@ export function computeDerived(params, project) {
   ).toFixed(2)
   const 渠坡比 = `1:${round1(上游连接段坡面宽度 / 上游连接段坡面高度)}`
   const 陡坡比 = `1:${round1(params.消力池陡坡段长度 / params.消力池陡坡段高差)}`
+  const 坡比值 = round1(上游连接段坡面宽度 / 上游连接段坡面高度)
+  const 陡坡比值 = round1(params.消力池陡坡段长度 / params.消力池陡坡段高差)
   const 上游连接段底板 = `${params.上游连接段底板厚度 * 10}mm厚${project.主材类型}`
   const 上游渐变段底板 = `${params.上游渐变段断面铺盖厚 * 10}mm厚${project.主材类型}`
   const 闸室底板 = `${params.闸底板厚 * 10}mm厚${project.主材类型}`
@@ -294,23 +359,24 @@ export function computeDerived(params, project) {
 
   const allParameters = {
     ...params,
-    ...project,
-    闸门宽,
+     ...project,
+     闸孔数,
+     闸门宽,
     闸总宽,
     上游渐变段中末断面距离,
     上游渐变段下断面铺盖宽,
     上游渐变段中断面铺盖宽,
-    上游渐变段上断面趾高: params.上游渐变段中断面趾高,
-    上游渐变段上断面趾宽: params.上游渐变段中断面趾宽,
-    上游渐变段上断面踵高: params.上游渐变段中断面踵高,
-    上游渐变段上断面顶端高: params.上游渐变段中断面顶端高,
-    上游渐变段上断面顶端宽: params.上游渐变段中断面顶端宽,
-    上游渐变段下断面趾高: params.上游渐变段中断面趾高,
-    上游渐变段下断面趾宽: params.上游渐变段中断面趾宽,
-    上游渐变段下断面踵高: params.上游渐变段中断面踵高,
-    上游渐变段下断面顶端宽: params.上游渐变段中断面顶端宽,
-    上游渐变段下断面顶端高: params.上游渐变段中断面顶端高,
-    上游连接段坡面高度,
+     上游渐变段上断面趾高,
+     上游渐变段上断面趾宽,
+     上游渐变段上断面踵高,
+     上游渐变段上断面顶端高,
+     上游渐变段上断面顶端宽,
+     上游渐变段下断面趾高,
+     上游渐变段下断面趾宽,
+     上游渐变段下断面踵高,
+     上游渐变段下断面顶端宽,
+     上游渐变段下断面顶端高,
+     上游连接段坡面高度,
     上游连接段坡面宽度,
     上游连接段渠底板宽,
     消力池陡坡段墙高,
@@ -318,18 +384,18 @@ export function computeDerived(params, project) {
     下游渐变段中断面坡高,
     下游渐变段上断面铺盖宽,
     下游渐变段上断面坡高,
-    下游渐变段上断面趾高: params.下游渐变段中断面趾高,
-    下游渐变段上断面趾宽: params.下游渐变段中断面趾宽,
-    下游渐变段上断面踵高: params.下游渐变段中断面踵高,
-    下游渐变段上断面顶端高: params.下游渐变段中断面顶端高,
-    下游渐变段上断面顶端宽: params.下游渐变段中断面顶端宽,
-    下游渐变段下断面坡高: 下游渐变段中断面坡高,
-    下游渐变段下断面趾高: params.下游渐变段中断面趾高,
-    下游渐变段下断面趾宽: params.下游渐变段中断面趾宽,
-    下游渐变段下断面踵高: params.下游渐变段中断面踵高,
-    下游渐变段下断面顶端宽: params.下游渐变段中断面顶端宽,
-    下游渐变段下断面顶端高: params.下游渐变段中断面顶端高,
-    下游渐变段中首断面距离,
+     下游渐变段上断面趾高,
+     下游渐变段上断面趾宽,
+     下游渐变段上断面踵高,
+     下游渐变段上断面顶端高,
+     下游渐变段上断面顶端宽,
+     下游渐变段下断面坡高,
+     下游渐变段下断面趾高,
+     下游渐变段下断面趾宽,
+     下游渐变段下断面踵高,
+     下游渐变段下断面顶端宽,
+     下游渐变段下断面顶端高,
+     下游渐变段中首断面距离,
     下游渐变段中断面铺盖宽,
     下游连接段坡面高度,
     下游连接段坡面宽度,
@@ -342,6 +408,8 @@ export function computeDerived(params, project) {
     下游墙顶高程,
     渠坡比,
     陡坡比,
+    坡比值,
+    陡坡比值,
     上游连接段底板,
     上游渐变段底板,
     闸室底板,
@@ -352,11 +420,22 @@ export function computeDerived(params, project) {
   }
 
   return {
+    闸孔数,
     闸门宽,
     闸总宽,
     上游渐变段中末断面距离,
     上游渐变段下断面铺盖宽,
     上游渐变段中断面铺盖宽,
+    上游渐变段上断面趾高,
+    上游渐变段上断面趾宽,
+    上游渐变段上断面踵高,
+    上游渐变段上断面顶端高,
+    上游渐变段上断面顶端宽,
+    上游渐变段下断面趾高,
+    上游渐变段下断面趾宽,
+    上游渐变段下断面踵高,
+    上游渐变段下断面顶端宽,
+    上游渐变段下断面顶端高,
     上游连接段坡面高度,
     上游连接段坡面宽度,
     上游连接段渠底板宽,
@@ -365,6 +444,17 @@ export function computeDerived(params, project) {
     下游渐变段中断面坡高,
     下游渐变段上断面铺盖宽,
     下游渐变段上断面坡高,
+    下游渐变段上断面趾高,
+    下游渐变段上断面趾宽,
+    下游渐变段上断面踵高,
+    下游渐变段上断面顶端高,
+    下游渐变段上断面顶端宽,
+    下游渐变段下断面坡高,
+    下游渐变段下断面趾高,
+    下游渐变段下断面趾宽,
+    下游渐变段下断面踵高,
+    下游渐变段下断面顶端宽,
+    下游渐变段下断面顶端高,
     下游渐变段中首断面距离,
     下游渐变段中断面铺盖宽,
     下游连接段坡面高度,
@@ -378,6 +468,8 @@ export function computeDerived(params, project) {
     下游墙顶高程,
     渠坡比,
     陡坡比,
+    坡比值,
+    陡坡比值,
     上游连接段底板,
     上游渐变段底板,
     闸室底板,
@@ -433,7 +525,6 @@ export function validate(params, derived) {
   return errors
 }
 
-// ==================== 工具方法 ====================
 
 function round1(value) {
   return Math.round(value * 10) / 10

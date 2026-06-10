@@ -55,7 +55,7 @@ export function addSluicePreviewGuides(context, params, derived, options) {
 function assertGuideCoverage(groups) {
   const missing = groups
     .flatMap((group) => group.fields)
-    .filter((field) => field.unit === 'cm' && !explicitGuideKeys.has(field.key))
+    .filter((field) => field.unit === 'cm' && !field.readonly && !explicitGuideKeys.has(field.key))
     .map((field) => field.key)
   if (missing.length > 0) {
     throw new Error(`缺少预览尺寸规则 ${missing.join('  ')}`)

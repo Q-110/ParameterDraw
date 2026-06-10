@@ -154,7 +154,7 @@ h3 {
   box-shadow: 0 1px 2px rgba(21, 34, 31, 0.05);
   min-height: 0;
 
-  &:not(.form-panel):not(.derived-panel):not(.validation-panel):not(.log-panel) {
+  &:not(.form-panel):not(.derived-panel):not(.validation-panel):not(.log-panel):not(.material-panel) {
     padding: 14px;
   }
 }
@@ -328,14 +328,16 @@ h3 {
 .form-panel,
 .derived-panel,
 .validation-panel,
-.log-panel {
+.log-panel,
+.material-panel {
   padding: 14px;
 }
 
 .scheme-panel,
 .project-panel,
 .basic-panel,
-.derived-panel {
+.derived-panel,
+.material-panel {
   height: 100%;
   overflow: auto;
 }
@@ -567,6 +569,27 @@ dd {
     font-size: 12px;
     line-height: 1.5;
     white-space: pre-wrap;
+  }
+}
+
+.material-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+
+  dl {
+    margin-top: 8px;
+    gap: 4px 0;
+  }
+
+  dt {
+    font-size: 11px;
+  }
+
+  dd {
+    font-size: 12px;
   }
 }
 

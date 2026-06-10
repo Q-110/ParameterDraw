@@ -1,6 +1,7 @@
 import {
   sluiceBasicFields,
   sluiceDerivedSections,
+  sluiceMaterialFields,
 } from '../_shared/config'
 import {
   computeDerived,
@@ -18,6 +19,7 @@ const template = {
   basicFields: sluiceBasicFields,
   groups,
   derivedSections: sluiceDerivedSections,
+  materialFields: sluiceMaterialFields,
   computeDerived,
 
   validate(parameters, project) {

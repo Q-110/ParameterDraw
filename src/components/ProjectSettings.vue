@@ -24,10 +24,38 @@
         />
       </label>
       <label>
+        <span>设计专业</span>
+        <input
+          :value="project.设计专业"
+          @input="updateProject('设计专业', $event)"
+        />
+      </label>
+      <label>
         <span>设计阶段</span>
         <input
           :value="project.设计阶段"
           @input="updateProject('设计阶段', $event)"
+        />
+      </label>
+      <label>
+        <span>主材类型</span>
+        <input
+          :value="project.主材类型"
+          @input="updateProject('主材类型', $event)"
+        />
+      </label>
+      <label>
+        <span>垫层类型1</span>
+        <input
+          :value="project.垫层类型1"
+          @input="updateProject('垫层类型1', $event)"
+        />
+      </label>
+      <label>
+        <span>垫层类型2</span>
+        <input
+          :value="project.垫层类型2"
+          @input="updateProject('垫层类型2', $event)"
         />
       </label>
       <label>

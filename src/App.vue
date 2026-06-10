@@ -26,11 +26,12 @@
 
     <section class="layout-column center-column">
       <section class="parameter-area">
-        <ParameterForm
-          :groups="currentTemplate.groups"
-          :active-group-id="activeGroupId"
-          :active-group="activeGroup"
-          :params="params"
+      <ParameterForm
+        :groups="currentTemplate.groups"
+        :active-group-id="activeGroupId"
+        :active-group="activeGroup"
+        :params="params"
+        :derived="derived"
           @update:active-group-id="activeGroupId = $event"
           @update-param="updateParam"
           @focus-field="setFieldFocus"
@@ -66,7 +67,10 @@
           :active-part-id="activeGroupId"
         />
       </section>
-      <RunLogPanel :logs="logs" @clear="logs = []" />
+      <MaterialPanel
+        :fields="currentTemplate.materialFields"
+        :derived="derived"
+      />
     </section>
   </main>
 </template>
@@ -74,9 +78,9 @@
 <script setup>
 import BasicParameterPanel from './components/BasicParameterPanel.vue'
 import DerivedPanel from './components/DerivedPanel.vue'
+import MaterialPanel from './components/MaterialPanel.vue'
 import ParameterForm from './components/ParameterForm.vue'
 import ProjectSettings from './components/ProjectSettings.vue'
-import RunLogPanel from './components/RunLogPanel.vue'
 import SchemePanel from './components/SchemePanel.vue'
 import TemplatePreviewHost from './components/TemplatePreviewHost.vue'
 import ValidationPanel from './components/ValidationPanel.vue'

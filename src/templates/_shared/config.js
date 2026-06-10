@@ -21,17 +21,21 @@ export const sluiceDerivedSections = [
       { key: '下游墙顶高程', label: '下游墙顶高程', unit: 'm' },
     ],
   },
-  {
-    id: 'geometry',
-    fields: [
-      { key: '闸门宽', label: '闸门宽', unit: 'cm', decimals: 2 },
-      { key: '闸总宽', label: '闸总宽', unit: 'cm', decimals: 2 },
-      { key: '上游渐变段下断面铺盖宽', label: '上游下断面铺盖宽', unit: 'cm', decimals: 2 },
-      { key: '下游渐变段上断面铺盖宽', label: '下游上断面铺盖宽', unit: 'cm', decimals: 2 },
-      { key: '渠坡比', label: '渠坡比' },
-      { key: '陡坡比', label: '陡坡比' },
-    ],
-  },
+]
+
+// 底板材料与比值展示   替换出图日志区域
+export const sluiceMaterialFields = [
+  { key: '坡比值', label: '坡比值', decimals: 1 },
+  { key: '陡坡比值', label: '陡坡比值', decimals: 1 },
+  { key: '渠坡比', label: '渠坡比' },
+  { key: '陡坡比', label: '陡坡比' },
+  { key: '上游连接段底板', label: '上游连接段底板' },
+  { key: '上游渐变段底板', label: '上游渐变段底板' },
+  { key: '闸室底板', label: '闸室底板' },
+  { key: '消力池底板', label: '消力池底板' },
+  { key: '下游渐变段底板', label: '下游渐变段底板' },
+  { key: '下游连接段底板', label: '下游连接段底板' },
+  { key: 'C15垫层砼', label: 'C15垫层砼' },
 ]
 
 // ==================== 项目默认值 ====================

@@ -15,27 +15,35 @@
       <label
         v-for="field in activeGroup.fields"
         :key="field.key"
-        class="field-row"
+        :class="['field-row', { readonly: field.readonly }]"
       >
         <span>{{ field.label }}</span>
-        <div class="unit-input">
-          <input
-            :value="params[field.key]"
-            type="number"
-            step="0.01"
-            @input="updateParam(field.key, $event)"
-            @focus="emit('focusField', field)"
-            @blur="emit('blurField')"
-          />
-          <em>{{ field.unit }}</em>
-        </div>
+        <template v-if="field.readonly">
+          <div class="unit-input">
+            <input :value="formatDerivedText(derived[field.key], field)" readonly />
+            <em>{{ field.unit }}</em>
+          </div>
+        </template>
+        <template v-else>
+          <div class="unit-input">
+            <input
+              :value="params[field.key]"
+              type="number"
+              step="0.01"
+              @input="updateParam(field.key, $event)"
+              @focus="emit('focusField', field)"
+              @blur="emit('blurField')"
+            />
+            <em>{{ field.unit }}</em>
+          </div>
+        </template>
       </label>
     </div>
   </section>
 </template>
 
 <script setup>
-defineProps(['groups', 'activeGroupId', 'activeGroup', 'params'])
+defineProps(['groups', 'activeGroupId', 'activeGroup', 'params', 'derived'])
 
 const emit = defineEmits([
   'update:activeGroupId',
@@ -51,5 +59,15 @@ const emit = defineEmits([
  */
 function updateParam(key, event) {
   emit('updateParam', key, Number(event.target.value))
+}
+
+/**
+ * 格式化只读派生字段的数值文本   单位由 em 负责
+ */
+function formatDerivedText(value, field) {
+  if (typeof value === 'number') {
+    return Number.isInteger(value) ? String(value) : value.toFixed(field.decimals ?? 2)
+  }
+  return String(value ?? '')
 }
 </script>
