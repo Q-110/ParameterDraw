@@ -5,11 +5,9 @@
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
-    "dev": "concurrently \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:5173 && electron .\"",
-    "web:dev": "vite --host 127.0.0.1",
+    "dev": "concurrently --kill-others-on-fail \"vite --host 127.0.0.1 --strictPort\" \"wait-on http://127.0.0.1:5173 && electron .\"",
     "build": "vite build",
     "backend:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-python-backend.ps1",
-    "preview": "vite preview --host 127.0.0.1",
     "dist": "pnpm backend:build && pnpm build && electron-builder --win nsis portable",
     "dist:portable": "pnpm backend:build && pnpm build && electron-builder --win portable",
     "dist:installer": "pnpm backend:build && pnpm build && electron-builder --win nsis"

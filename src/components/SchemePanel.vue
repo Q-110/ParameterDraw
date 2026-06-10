@@ -46,18 +46,11 @@
     >
       {{ runState === 'running' ? '正在出图' : '执行出图' }}
     </button>
-    <input
-      ref="fileInput"
-      type="file"
-      accept="application/json"
-      hidden
-      @change="emit('browserFileChange', $event)"
-    />
   </section>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps([
   'schemeName',
@@ -75,10 +68,7 @@ const emit = defineEmits([
   'save',
   'saveAs',
   'run',
-  'browserFileChange',
 ])
-
-const fileInput = ref(null)
 
 // 运行状态
 const runStateText = computed(() => {
@@ -108,16 +98,4 @@ function updateSchemeName(event) {
 function updateTemplate(event) {
   emit('update:templateId', event.target.value)
 }
-
-// 打开方案
-/**
- * 触发浏览器文件选择框
- */
-function openBrowserFilePicker() {
-  fileInput.value?.click()
-}
-
-defineExpose({
-  openBrowserFilePicker,
-})
 </script>

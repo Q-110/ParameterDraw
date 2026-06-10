@@ -46,11 +46,7 @@
           <input :value="output.savepath" readonly />
           <button
             type="button"
-            :title="
-              isElectron
-                ? '选择出图保存文件夹'
-                : '浏览器预览模式使用所选文件夹名作为相对路径'
-            "
+            title="选择出图保存文件夹"
             @click="emit('selectOutputDirectory')"
           >
             选择
@@ -65,7 +61,7 @@
 import { computed } from 'vue'
 
 // 项目设置展示项目属性和基础参数  所有修改都通过事件交给父组件
-const props = defineProps(['project', 'output', 'isElectron'])
+const props = defineProps(['project', 'output'])
 
 const emit = defineEmits(['updateProject', 'selectOutputDirectory'])
 

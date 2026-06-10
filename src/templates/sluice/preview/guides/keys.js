@@ -1,0 +1,57 @@
+import {
+  downstreamConnectionKeys,
+  downstreamTransitionKeys,
+  upstreamConnectionKeys,
+  upstreamTransitionKeys,
+} from '../data'
+
+export {
+  downstreamConnectionKeys,
+  downstreamTransitionKeys,
+  upstreamConnectionKeys,
+  upstreamTransitionKeys,
+}
+
+// 所有需要生成 3D 尺寸辅助线的参数白名单
+// 用于做强制校验
+export const explicitGuideKeys = new Set([
+  '闸室长',
+  '闸孔净宽',
+  '闸底板厚',
+  '边墩厚',
+  '中墙厚',
+  '闸墩高',
+  '齿墙高',
+  '齿墙宽',
+  '闸门距上游',
+  '闸门厚',
+  '门槽入闸墩深',
+  '门槽深',
+  '门槽二期宽',
+  '检修桥入闸墩深',
+  '检修桥板厚',
+  '检修桥板宽',
+  '交通桥宽',
+  '交通桥厚',
+  '桥边距上游',
+  '搭板长',
+  '交通桥护边厚',
+  '交通桥护边高',
+  ...Object.values(upstreamConnectionKeys),
+  ...Object.values(downstreamConnectionKeys),
+  ...Object.values(upstreamTransitionKeys).filter((key) => Boolean(key)),
+  ...Object.values(downstreamTransitionKeys).filter((key) => Boolean(key)),
+  '消力池陡坡段平直段长度',
+  '消力池陡坡段长度',
+  '消力池陡坡段高差',
+  '消力池长度',
+  '消力池底板厚度',
+  '消力池齿墙底宽',
+  '消力池齿墙高度',
+  '消力池陡坡段上部墙宽',
+  '消力池陡坡段下部墙宽',
+  '消力池墙高',
+  '消力池斜墙段高度',
+  '消力坎高',
+  '消力坎顶宽',
+])

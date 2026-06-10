@@ -1,14 +1,14 @@
 import {
   sluiceBasicFields,
   sluiceDerivedSections,
-} from '../shared/sluice/configuration'
+} from '../sluice/configuration'
 import {
   computeDerived as computeSluiceDerived,
   defaultParams,
   fieldGroups,
   validateParams,
-} from '../shared/sluice/model'
-import SluicePreview from '../shared/sluice/preview/SluicePreview.vue'
+} from '../sluice/model'
+import { SluicePreview } from '../sluice/preview'
 
 const template = {
   id: '01渐变扭+单孔+检修+交通+消力+渐变扭',

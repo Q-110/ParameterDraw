@@ -9,3 +9,7 @@ export const defaultProject = {
   垫层类型1: 'C15混凝土垫层',
   垫层类型2: '碎石垫层',
 }
+
+export const defaultOutput = {
+  savepath: 'D:\\Desktop\\ParameterDrawOutput',
+}

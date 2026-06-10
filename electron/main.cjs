@@ -276,6 +276,7 @@ ipcMain.handle('drawing:run', async (event, scheme) => {
 
     child.on('error', (error) => {
       drawingRunning = false
+      event.sender.send('drawing:log', error.message)
       // 子进程启动失败时 返回结构化错误  避免界面一直停在运行中
       resolve({
         success: false,

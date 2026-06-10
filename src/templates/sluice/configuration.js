@@ -6,7 +6,7 @@ export const sluiceBasicFields = [
   { key: '止水偏移表面', label: '止水偏移表面', unit: 'cm' },
 ]
 
-// 派生值只负责展示   实际计算集中在 model.js
+// 派生值只负责展示   实际计算集中在 model 目录
 export const sluiceDerivedSections = [
   {
     id: 'elevation',

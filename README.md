@@ -20,12 +20,6 @@ pnpm install
 pnpm dev
 ```
 
-浏览器预览使用
-
-```powershell
-pnpm web:dev
-```
-
 ## Python 环境
 
 ```powershell

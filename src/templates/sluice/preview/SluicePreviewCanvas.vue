@@ -11,8 +11,8 @@ import {
   fitPartToView,
   renderPreview,
   updatePreviewHighlight,
-} from './previewScene.js'
-import { buildSluicePart } from './sluicePreviewGeometry.js'
+} from './scene'
+import { buildSluicePart } from './geometry'
 
 const props = defineProps([
   'part',
