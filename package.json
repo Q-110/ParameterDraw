@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "concurrently \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:5173 && electron .\"",
     "web:dev": "vite --host 127.0.0.1",
-    "build": "vue-tsc -b && vite build",
+    "build": "vite build",
     "backend:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-python-backend.ps1",
     "preview": "vite preview --host 127.0.0.1",
     "dist": "pnpm backend:build && pnpm build && electron-builder --win nsis portable",
@@ -68,17 +68,12 @@
     "vue": "^3.5.34"
   },
   "devDependencies": {
-    "@types/node": "^24.12.3",
-    "@types/three": "^0.184.1",
     "@vitejs/plugin-vue": "^6.0.6",
-    "@vue/tsconfig": "^0.9.1",
     "concurrently": "^10.0.1",
     "electron": "^42.3.0",
     "electron-builder": "^26.8.1",
     "less": "^4.6.4",
-    "typescript": "~6.0.2",
     "vite": "^8.0.12",
-    "vue-tsc": "^3.2.8",
     "wait-on": "^9.0.10"
   }
 }

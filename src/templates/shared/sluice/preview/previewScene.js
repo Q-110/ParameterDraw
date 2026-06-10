@@ -3,30 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { LineMaterial } from 'three/addons/lines/LineMaterial.js'
 import { LineSegments2 } from 'three/addons/lines/LineSegments2.js'
 import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js'
-import type { FocusTarget, PartId } from '../../../../types.js'
-
-export interface PreviewContext {
-  part: PartId
-  scene: THREE.Scene
-  camera: THREE.OrthographicCamera
-  renderer: THREE.WebGLRenderer
-  controls: OrbitControls
-  // 每个部件的所有 mesh 都挂在 root 下  便于整体居中和等比缩放
-  root: THREE.Group
-  meshes: THREE.Object3D[]
-  dimensionMaterials: Set<LineMaterial>
-  modelCenter: THREE.Vector3
-  panOffset: THREE.Vector2
-  viewportSize: THREE.Vector2
-  observer: ResizeObserver
-  changeHandler: () => void
-  panPointerDownHandler: (event: PointerEvent) => void
-  panPointerMoveHandler: (event: PointerEvent) => void
-  panPointerUpHandler: (event: PointerEvent) => void
-  contextMenuHandler: (event: MouseEvent) => void
-}
-
-const partColors: Record<PartId, number> = {
+const partColors = {
   gate: 0x8aa3a0,
   stilling: 0x739072,
   upstreamConnection: 0x9b8c73,
@@ -34,31 +11,27 @@ const partColors: Record<PartId, number> = {
   downstreamConnection: 0xa06f65,
   downstreamTransition: 0x7a87a8,
 }
-
 /**
  * 为单个部件创建完整的 Three.js 场景
  * @param container   DOM 容器
  * @param part        部件 ID
  */
-export function createPreviewContext(container: HTMLDivElement, part: PartId): PreviewContext {
+export function createPreviewContext(container, part) {
   // 创建场景 Scene
   const scene = new THREE.Scene()
   scene.background = new THREE.Color(0xf8faf9)
   // root 只承载当前部件的几何体  后续通过 root 统一缩放和居中
   const root = new THREE.Group()
   scene.add(root)
-
   // 创建正交相机   所有体块等大显示
   // 预览保持 Three.js 默认 Y-up   Z 正方向作为上游
   const camera = new THREE.OrthographicCamera(-5, 5, 5, -5, 0.1, 100)
-  camera.position.set(6, 5, 7)    // 从右侧上游上方俯视
-  camera.lookAt(0, 0, 0)          // 看向原点
-
+  camera.position.set(6, 5, 7) // 从右侧上游上方俯视
+  camera.lookAt(0, 0, 0) // 看向原点
   // 创建渲染器
   const renderer = new THREE.WebGLRenderer({ antialias: true })
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))   // 限制像素比上限为 2
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)) // 限制像素比上限为 2
   container.appendChild(renderer.domElement)
-
   // 每个预览区域独立控制视角：左键旋转、滚轮缩放、右键平移
   const controls = new OrbitControls(camera, renderer.domElement)
   controls.enablePan = false
@@ -70,19 +43,18 @@ export function createPreviewContext(container: HTMLDivElement, part: PartId): P
   const modelCenter = new THREE.Vector3(0, 0, 0)
   const panOffset = new THREE.Vector2(0, 0)
   const viewportSize = new THREE.Vector2(1, 1)
-  let context: PreviewContext
-  controls.target.copy(modelCenter)            // 锁定视角中心
-  const changeHandler = (): void => {
+  let context
+  controls.target.copy(modelCenter) // 锁定视角中心
+  const changeHandler = () => {
     controls.target.copy(context.modelCenter)
     applyCameraViewOffset(context)
-    constrainPartToView(context)     // 限制移动范围
+    constrainPartToView(context) // 限制移动范围
     renderer.render(scene, camera)
   }
-
-  let panPointerId: number | null = null
+  let panPointerId = null
   let lastPanX = 0
   let lastPanY = 0
-  const panPointerDownHandler = (event: PointerEvent): void => {
+  const panPointerDownHandler = (event) => {
     if (event.button !== 0 && event.button !== 2) {
       return
     }
@@ -95,7 +67,7 @@ export function createPreviewContext(container: HTMLDivElement, part: PartId): P
     lastPanY = event.clientY
     renderer.domElement.setPointerCapture(event.pointerId)
   }
-  const panPointerMoveHandler = (event: PointerEvent): void => {
+  const panPointerMoveHandler = (event) => {
     if (panPointerId !== event.pointerId) {
       return
     }
@@ -104,13 +76,13 @@ export function createPreviewContext(container: HTMLDivElement, part: PartId): P
     const deltaY = event.clientY - lastPanY
     lastPanX = event.clientX
     lastPanY = event.clientY
-    context.panOffset.x += deltaX / context.viewportSize.x * 2
-    context.panOffset.y -= deltaY / context.viewportSize.y * 2
+    context.panOffset.x += (deltaX / context.viewportSize.x) * 2
+    context.panOffset.y -= (deltaY / context.viewportSize.y) * 2
     applyCameraViewOffset(context)
     constrainPartToView(context)
     renderer.render(scene, camera)
   }
-  const panPointerUpHandler = (event: PointerEvent): void => {
+  const panPointerUpHandler = (event) => {
     if (panPointerId !== event.pointerId) {
       return
     }
@@ -119,18 +91,16 @@ export function createPreviewContext(container: HTMLDivElement, part: PartId): P
       renderer.domElement.releasePointerCapture(event.pointerId)
     }
   }
-  const contextMenuHandler = (event: MouseEvent): void => {
+  const contextMenuHandler = (event) => {
     event.preventDefault()
   }
-
   // 使用环境光和方向光组合
-  scene.add(new THREE.AmbientLight(0xffffff, 0.78))   // 环境光
-  const light = new THREE.DirectionalLight(0xffffff, 1.1)   // 方向光
+  scene.add(new THREE.AmbientLight(0xffffff, 0.78)) // 环境光
+  const light = new THREE.DirectionalLight(0xffffff, 1.1) // 方向光
   light.position.set(5, 8, 6)
   scene.add(light)
-
   // 自适应
-  const observer = new ResizeObserver((): void => resizeContext(container, context))
+  const observer = new ResizeObserver(() => resizeContext(container, context))
   context = {
     part,
     scene,
@@ -139,7 +109,7 @@ export function createPreviewContext(container: HTMLDivElement, part: PartId): P
     controls,
     root,
     meshes: [],
-    dimensionMaterials: new Set<LineMaterial>(),
+    dimensionMaterials: new Set(),
     modelCenter,
     panOffset,
     viewportSize,
@@ -158,46 +128,36 @@ export function createPreviewContext(container: HTMLDivElement, part: PartId): P
   renderer.domElement.addEventListener('pointercancel', panPointerUpHandler)
   renderer.domElement.addEventListener('contextmenu', contextMenuHandler)
   observer.observe(container)
-  resizeContext(container, context)   // 立即执行一次
-
+  resizeContext(container, context) // 立即执行一次
   return context
 }
-
 /**
  * 容器尺寸变化时自适应调整相机和渲染器
  * @param container
  * @param context
  */
-function resizeContext(
-  container: HTMLDivElement,
-  context: PreviewContext,
-): void {
+function resizeContext(container, context) {
   // 1. 取容器的实际宽高
   const width = Math.max(container.clientWidth, 280)
   const height = Math.max(container.clientHeight, 180)
   const aspect = width / height
   context.viewportSize.set(width, height)
-
   // 2. 重设正交相机左右边界   固定垂直边界（top/bottom = ±5.2） 水平范围根据容器宽高比等比缩放
   context.camera.left = -6.5 * aspect
   context.camera.right = 6.5 * aspect
   context.camera.top = 5.2
   context.camera.bottom = -5.2
-
   // 3. 告诉 Three.js 相机参数已变更   正交相机的投影矩阵基于 left/right/top/bottom/near/far 计算  修改这些值后必须调用 updateProjectionMatrix()
   applyCameraViewOffset(context)
   constrainPartToView(context)
-
   // 4. 重置渲染尺寸    第三个参数 false 表示不修改 css 尺寸   只改 canvas 缓冲大小
   context.renderer.setSize(width, height, false)
-  context.dimensionMaterials.forEach((material): void => {
+  context.dimensionMaterials.forEach((material) => {
     material.resolution.set(width, height)
   })
-
   // 5. 立即渲染一帧 防止 ResizeObserver 回调后出现一帧空白
   context.renderer.render(context.scene, context.camera)
 }
-
 /**
  * 创建单个体块的 Mesh — 边线   添加到场景并注册到 meshes 数组
  * @param context   目标场景上下文
@@ -213,30 +173,35 @@ function resizeContext(
  * @param isGuide   是否为辅助体（默认隐藏  聚焦时显示）
  */
 export function addBox(
-  context: PreviewContext,
-  region: string,
-  width: number,
-  height: number,
-  depth: number,
-  x: number,
-  y: number,
-  z: number,
+  context,
+  region,
+  width,
+  height,
+  depth,
+  x,
+  y,
+  z,
   rotateZ = 0,
   rotateX = 0,
   isGuide = false,
-): void {
+) {
   // 创建几何体
-  const geometry = new THREE.BoxGeometry(Math.max(width, 0.01), Math.max(height, 0.01), Math.max(depth, 0.01))
-
+  const geometry = new THREE.BoxGeometry(
+    Math.max(width, 0.01),
+    Math.max(height, 0.01),
+    Math.max(depth, 0.01),
+  )
   // 创建 Mesh
-  const mesh = new THREE.Mesh(geometry, createMeshMaterial(context.part, false, isGuide))
-  mesh.position.set(x, y, z)   // 设置位置
-  mesh.rotation.x = rotateX    // 设置纵向坡度
-  mesh.rotation.z = rotateZ    // 设置旋转
+  const mesh = new THREE.Mesh(
+    geometry,
+    createMeshMaterial(context.part, false, isGuide),
+  )
+  mesh.position.set(x, y, z) // 设置位置
+  mesh.rotation.x = rotateX // 设置纵向坡度
+  mesh.rotation.z = rotateZ // 设置旋转
   mesh.userData.previewRegion = region
   mesh.userData.previewGuide = isGuide
   mesh.visible = !isGuide
-
   // 创建边线
   const edges = new THREE.LineSegments(
     // 提取盒子 12 个棱
@@ -250,33 +215,34 @@ export function addBox(
   edges.userData.previewRegion = region
   edges.userData.previewGuide = isGuide
   edges.visible = !isGuide
-
   // 注册
-  context.root.add(mesh, edges)   // 加入部件根节点
+  context.root.add(mesh, edges) // 加入部件根节点
   context.meshes.push(mesh, edges) // 存入数组
-
   if (!isGuide) {
     const guideGeometry = geometry.clone()
-    const guideMesh = new THREE.Mesh(guideGeometry, createMeshMaterial(context.part, false, true))
+    const guideMesh = new THREE.Mesh(
+      guideGeometry,
+      createMeshMaterial(context.part, false, true),
+    )
     guideMesh.position.copy(mesh.position)
     guideMesh.rotation.copy(mesh.rotation)
     guideMesh.userData.previewRegion = region
     guideMesh.userData.previewGuide = true
     guideMesh.visible = false
-
-    const guideEdges = new THREE.LineSegments(new THREE.EdgesGeometry(guideGeometry), createEdgeMaterial(false, true))
+    const guideEdges = new THREE.LineSegments(
+      new THREE.EdgesGeometry(guideGeometry),
+      createEdgeMaterial(false, true),
+    )
     guideEdges.position.copy(mesh.position)
     guideEdges.rotation.copy(mesh.rotation)
     guideEdges.userData.previewRegion = region
     guideEdges.userData.previewGuide = true
     guideEdges.visible = false
-
     // 普通构件的隐藏副本用于聚焦提示   避免直接改变实体构件材质
     context.root.add(guideMesh, guideEdges)
     context.meshes.push(guideMesh, guideEdges)
   }
 }
-
 /**
  * 添加自定义几何体  并同步创建边线
  * 适用于 BoxGeometry 无法表达的梯形底板和渐变坡面
@@ -286,20 +252,28 @@ export function addBox(
  * @param doubleSide  是否双面渲染  开放坡面需要双面避免视角切换时不可见
  * @param isGuide     是否为辅助体（默认隐藏  聚焦时显示）
  */
-export function addGeometry(context: PreviewContext, region: string, geometry: THREE.BufferGeometry, doubleSide = false, isGuide = false): void {
+export function addGeometry(
+  context,
+  region,
+  geometry,
+  doubleSide = false,
+  isGuide = false,
+) {
   const material = createMeshMaterial(context.part, false, isGuide)
   material.side = doubleSide ? THREE.DoubleSide : THREE.FrontSide
   const mesh = new THREE.Mesh(geometry, material)
   mesh.userData.previewRegion = region
   mesh.userData.previewGuide = isGuide
   mesh.visible = !isGuide
-  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), createEdgeMaterial(false, isGuide))
+  const edges = new THREE.LineSegments(
+    new THREE.EdgesGeometry(geometry),
+    createEdgeMaterial(false, isGuide),
+  )
   edges.userData.previewRegion = region
   edges.userData.previewGuide = isGuide
   edges.visible = !isGuide
   context.root.add(mesh, edges)
   context.meshes.push(mesh, edges)
-
   if (!isGuide) {
     const guideGeometry = geometry.clone()
     const guideMaterial = createMeshMaterial(context.part, false, true)
@@ -308,17 +282,18 @@ export function addGeometry(context: PreviewContext, region: string, geometry: T
     guideMesh.userData.previewRegion = region
     guideMesh.userData.previewGuide = true
     guideMesh.visible = false
-    const guideEdges = new THREE.LineSegments(new THREE.EdgesGeometry(guideGeometry), createEdgeMaterial(false, true))
+    const guideEdges = new THREE.LineSegments(
+      new THREE.EdgesGeometry(guideGeometry),
+      createEdgeMaterial(false, true),
+    )
     guideEdges.userData.previewRegion = region
     guideEdges.userData.previewGuide = true
     guideEdges.visible = false
-
     // 自定义几何也保留隐藏辅助体   聚焦时显示范围   实体本身保持原材质
     context.root.add(guideMesh, guideEdges)
     context.meshes.push(guideMesh, guideEdges)
   }
 }
-
 /**
  * 添加尺寸线辅助对象
  * 尺寸线独立匹配 guideRegion
@@ -333,23 +308,38 @@ export function addGeometry(context: PreviewContext, region: string, geometry: T
  * @param extensionEnd    终点辅助线实体端
  */
 export function addDimensionLine(
-  context: PreviewContext,
-  region: string,
-  start: THREE.Vector3,
-  end: THREE.Vector3,
-  tickAxis: THREE.Vector3,
-  tickSize: number,
-  extensionStart?: THREE.Vector3,
-  extensionEnd?: THREE.Vector3,
-): void {
-  const tick = tickAxis.clone().normalize().multiplyScalar(tickSize / 2)
+  context,
+  region,
+  start,
+  end,
+  tickAxis,
+  tickSize,
+  extensionStart,
+  extensionEnd,
+) {
+  const tick = tickAxis
+    .clone()
+    .normalize()
+    .multiplyScalar(tickSize / 2)
   const vertices = new Float32Array([
-    start.x, start.y, start.z,
-    end.x, end.y, end.z,
-    start.x - tick.x, start.y - tick.y, start.z - tick.z,
-    start.x + tick.x, start.y + tick.y, start.z + tick.z,
-    end.x - tick.x, end.y - tick.y, end.z - tick.z,
-    end.x + tick.x, end.y + tick.y, end.z + tick.z,
+    start.x,
+    start.y,
+    start.z,
+    end.x,
+    end.y,
+    end.z,
+    start.x - tick.x,
+    start.y - tick.y,
+    start.z - tick.z,
+    start.x + tick.x,
+    start.y + tick.y,
+    start.z + tick.z,
+    end.x - tick.x,
+    end.y - tick.y,
+    end.z - tick.z,
+    end.x + tick.x,
+    end.y + tick.y,
+    end.z + tick.z,
   ])
   const geometry = new LineSegmentsGeometry()
   geometry.setPositions(vertices)
@@ -364,15 +354,24 @@ export function addDimensionLine(
   context.root.add(line)
   context.meshes.push(line)
   context.dimensionMaterials.add(material)
-
   if (extensionStart && extensionEnd) {
     const extensionGeometry = new LineSegmentsGeometry()
-    extensionGeometry.setPositions(new Float32Array([
-      extensionStart.x, extensionStart.y, extensionStart.z,
-      start.x, start.y, start.z,
-      extensionEnd.x, extensionEnd.y, extensionEnd.z,
-      end.x, end.y, end.z,
-    ]))
+    extensionGeometry.setPositions(
+      new Float32Array([
+        extensionStart.x,
+        extensionStart.y,
+        extensionStart.z,
+        start.x,
+        start.y,
+        start.z,
+        extensionEnd.x,
+        extensionEnd.y,
+        extensionEnd.z,
+        end.x,
+        end.y,
+        end.z,
+      ]),
+    )
     const extensionMaterial = new LineMaterial({
       color: 0x2f5d62,
       linewidth: 1.5,
@@ -386,7 +385,10 @@ export function addDimensionLine(
       alphaToCoverage: true,
     })
     extensionMaterial.resolution.copy(context.viewportSize)
-    const extensionLine = new LineSegments2(extensionGeometry, extensionMaterial)
+    const extensionLine = new LineSegments2(
+      extensionGeometry,
+      extensionMaterial,
+    )
     extensionLine.computeLineDistances()
     extensionLine.userData.previewRegion = region
     extensionLine.userData.previewGuide = true
@@ -398,38 +400,36 @@ export function addDimensionLine(
     context.dimensionMaterials.add(extensionMaterial)
   }
 }
-
 /**
  * 清理当前部件旧几何
  * BoxGeometry 创建后不能直接改尺寸  参数变化时必须释放旧资源后重新创建
  * @param context
  */
-export function clearPreviewMeshes(context: PreviewContext): void {
-  context.meshes.forEach((mesh): void => {
+export function clearPreviewMeshes(context) {
+  context.meshes.forEach((mesh) => {
     // 移除前先释放 Three.js 资源  避免参数连续修改时堆积旧 geometry/material
     disposeObject(mesh)
-    context.root.remove(mesh)   // 从部件根节点中移除
+    context.root.remove(mesh) // 从部件根节点中移除
   })
-  context.meshes = []   // 清空 mesh 引用数组
+  context.meshes = [] // 清空 mesh 引用数组
   context.dimensionMaterials.clear()
   // 清空后恢复 root 的原始变换  下一次重建再重新计算包围盒
   context.root.position.set(0, 0, 0)
   context.root.scale.set(1, 1, 1)
 }
-
 /**
  * 将当前部件整体缩放并移动到预览视口中心
  * 几何体先按真实 cm 比例创建  再通过 root 统一缩放  保证部件内部比例不被破坏
  * @param context
  */
-export function fitPartToView(context: PreviewContext): void {
+export function fitPartToView(context) {
   if (!context.meshes.length) {
     return
   }
   // 先基于非辅助对象计算包围盒  得到部件真实显示范围
   context.root.updateWorldMatrix(true, true)
   const box = new THREE.Box3()
-  context.meshes.forEach((object): void => {
+  context.meshes.forEach((object) => {
     if (object.userData.previewGuide === true) {
       return
     }
@@ -445,22 +445,25 @@ export function fitPartToView(context: PreviewContext): void {
   const targetSize = 10
   const scale = targetSize / maxSize
   context.root.scale.setScalar(scale)
-  context.root.position.set(-center.x * scale, -center.y * scale, -center.z * scale)
+  context.root.position.set(
+    -center.x * scale,
+    -center.y * scale,
+    -center.z * scale,
+  )
   context.modelCenter.set(0, 0, 0)
   context.controls.target.copy(context.modelCenter)
   applyCameraViewOffset(context)
   constrainPartToView(context)
 }
-
 /**
  * 更新当前部件高亮材质
  * 焦点变化只修改材质参数  避免重建几何和重置用户视角
  * @param context
  * @param focus
  */
-export function updatePreviewHighlight(context: PreviewContext, focus: FocusTarget | null): void {
-  context.meshes.forEach((object): void => {
-    const region = object.userData.previewRegion as string
+export function updatePreviewHighlight(context, focus) {
+  context.meshes.forEach((object) => {
+    const region = object.userData.previewRegion
     const isGuide = object.userData.previewGuide === true
     const isDimension = object.userData.previewDimension === true
     const partFocused = focus?.part === context.part
@@ -472,50 +475,73 @@ export function updatePreviewHighlight(context: PreviewContext, focus: FocusTarg
       object.visible = highlighted
     }
     if (object instanceof THREE.Mesh) {
-      updateMeshMaterial(object.material, context.part, isGuide && highlighted, isGuide, dimmed)
+      updateMeshMaterial(
+        object.material,
+        context.part,
+        isGuide && highlighted,
+        isGuide,
+        dimmed,
+      )
     }
     if (object instanceof LineSegments2) {
       updateDimensionMaterial(object.material, dimensionHighlighted)
     } else if (object instanceof THREE.LineSegments) {
-      updateEdgeMaterial(object.material, isGuide && highlighted, isGuide, dimmed)
+      updateEdgeMaterial(
+        object.material,
+        isGuide && highlighted,
+        isGuide,
+        dimmed,
+      )
     }
   })
 }
-
 /**
  * 渲染当前预览场景
  * @param context
  */
-export function renderPreview(context: PreviewContext): void {
+export function renderPreview(context) {
   context.renderer.render(context.scene, context.camera)
 }
-
 /**
  * 销毁预览上下文和占用的 Three.js 资源
  * @param context
  */
-export function disposePreviewContext(context: PreviewContext): void {
+export function disposePreviewContext(context) {
   clearPreviewMeshes(context)
   context.observer.disconnect()
   context.controls.removeEventListener('change', context.changeHandler)
-  context.renderer.domElement.removeEventListener('pointerdown', context.panPointerDownHandler)
-  context.renderer.domElement.removeEventListener('pointermove', context.panPointerMoveHandler)
-  context.renderer.domElement.removeEventListener('pointerup', context.panPointerUpHandler)
-  context.renderer.domElement.removeEventListener('pointercancel', context.panPointerUpHandler)
-  context.renderer.domElement.removeEventListener('contextmenu', context.contextMenuHandler)
+  context.renderer.domElement.removeEventListener(
+    'pointerdown',
+    context.panPointerDownHandler,
+  )
+  context.renderer.domElement.removeEventListener(
+    'pointermove',
+    context.panPointerMoveHandler,
+  )
+  context.renderer.domElement.removeEventListener(
+    'pointerup',
+    context.panPointerUpHandler,
+  )
+  context.renderer.domElement.removeEventListener(
+    'pointercancel',
+    context.panPointerUpHandler,
+  )
+  context.renderer.domElement.removeEventListener(
+    'contextmenu',
+    context.contextMenuHandler,
+  )
   context.controls.dispose()
   context.renderer.dispose()
   context.renderer.domElement.remove()
 }
-
 /**
  * 应用屏幕平移偏移
  * 只移动正交投影视锥  保持相机位置和模型中心不变
  * @param context
  */
-function applyCameraViewOffset(context: PreviewContext): void {
-  const offsetX = -context.panOffset.x * context.viewportSize.x / 2
-  const offsetY = context.panOffset.y * context.viewportSize.y / 2
+function applyCameraViewOffset(context) {
+  const offsetX = (-context.panOffset.x * context.viewportSize.x) / 2
+  const offsetY = (context.panOffset.y * context.viewportSize.y) / 2
   context.camera.setViewOffset(
     context.viewportSize.x,
     context.viewportSize.y,
@@ -526,23 +552,21 @@ function applyCameraViewOffset(context: PreviewContext): void {
   )
   context.camera.updateProjectionMatrix()
 }
-
 /**
  * 限制模型屏幕平移范围
  * 通过修正屏幕偏移实现回拉  不移动相机和视角中心
  * @param context
  */
-function constrainPartToView(context: PreviewContext): void {
+function constrainPartToView(context) {
   // 获取真实构件包围盒  辅助体不参与平移边界
   const box = new THREE.Box3()
-  context.meshes.forEach((object): void => {
+  context.meshes.forEach((object) => {
     if (object.userData.previewGuide === true) {
       return
     }
     box.expandByObject(object)
   })
   if (box.isEmpty()) return
-
   // 8 个顶点投影到 NDC
   context.camera.updateMatrixWorld()
   const projectedCorners = [
@@ -556,46 +580,40 @@ function constrainPartToView(context: PreviewContext): void {
     new THREE.Vector3(box.max.x, box.max.y, box.max.z),
   ]
   const projectedBox = new THREE.Box2()
-  projectedCorners.forEach((corner): void => {
-    corner.project(context.camera)                                        // 3D 坐标 -> NDC [-1, 1]
-    projectedBox.expandByPoint(new THREE.Vector2(corner.x, corner.y))     // 收集投影后的 2D 坐标   得到模型在屏幕空间的投影包围盒
+  projectedCorners.forEach((corner) => {
+    corner.project(context.camera) // 3D 坐标 -> NDC [-1, 1]
+    projectedBox.expandByPoint(new THREE.Vector2(corner.x, corner.y)) // 收集投影后的 2D 坐标   得到模型在屏幕空间的投影包围盒
   })
-
   // 判断是否越界
   const projectedSize = projectedBox.getSize(new THREE.Vector2())
   const visibleWidth = Math.min(projectedSize.x * 0.3, 2)
   const visibleHeight = Math.min(projectedSize.y * 0.3, 2)
   let shiftX = 0
   let shiftY = 0
-
   if (projectedBox.max.x < -1 + visibleWidth) {
     shiftX = -1 + visibleWidth - projectedBox.max.x
   } else if (projectedBox.min.x > 1 - visibleWidth) {
     shiftX = 1 - visibleWidth - projectedBox.min.x
   }
-
   if (projectedBox.max.y < -1 + visibleHeight) {
     shiftY = -1 + visibleHeight - projectedBox.max.y
   } else if (projectedBox.min.y > 1 - visibleHeight) {
     shiftY = 1 - visibleHeight - projectedBox.min.y
   }
-
   if (shiftX === 0 && shiftY === 0) {
     return
   }
-
   context.panOffset.x += shiftX
   context.panOffset.y += shiftY
   applyCameraViewOffset(context)
 }
-
 /**
  * 创建体块材质
  * @param part
  * @param highlighted
  * @param isGuide
  */
-function createMeshMaterial(part: PartId, highlighted: boolean, isGuide: boolean): THREE.MeshStandardMaterial {
+function createMeshMaterial(part, highlighted, isGuide) {
   return new THREE.MeshStandardMaterial({
     color: highlighted ? 0xf4b942 : partColors[part],
     roughness: highlighted ? 0.45 : 0.72,
@@ -604,24 +622,22 @@ function createMeshMaterial(part: PartId, highlighted: boolean, isGuide: boolean
     opacity: isGuide ? 0.5 : 1,
   })
 }
-
 /**
  * 创建边线材质
  * @param highlighted
  * @param isGuide
  */
-function createEdgeMaterial(highlighted: boolean, isGuide: boolean): THREE.LineBasicMaterial {
+function createEdgeMaterial(highlighted, isGuide) {
   return new THREE.LineBasicMaterial({
     color: highlighted ? 0x005f73 : 0x60706a,
     transparent: true,
     opacity: isGuide ? 0.9 : 0.55,
   })
 }
-
 /**
  * 创建尺寸线材质
  */
-function createDimensionMaterial(context: PreviewContext): LineMaterial {
+function createDimensionMaterial(context) {
   const material = new LineMaterial({
     color: 0x2f5d62,
     linewidth: 4,
@@ -634,7 +650,6 @@ function createDimensionMaterial(context: PreviewContext): LineMaterial {
   material.resolution.copy(context.viewportSize)
   return material
 }
-
 /**
  * 更新体块材质
  * @param material
@@ -643,15 +658,9 @@ function createDimensionMaterial(context: PreviewContext): LineMaterial {
  * @param isGuide
  * @param dimmed
  */
-function updateMeshMaterial(
-  material: THREE.Material | THREE.Material[],
-  part: PartId,
-  highlighted: boolean,
-  isGuide: boolean,
-  dimmed: boolean,
-): void {
+function updateMeshMaterial(material, part, highlighted, isGuide, dimmed) {
   const materials = Array.isArray(material) ? material : [material]
-  materials.forEach((item): void => {
+  materials.forEach((item) => {
     if (item instanceof THREE.MeshStandardMaterial) {
       item.color.setHex(highlighted ? 0xf4b942 : partColors[part])
       item.roughness = highlighted ? 0.45 : 0.72
@@ -667,7 +676,6 @@ function updateMeshMaterial(
     }
   })
 }
-
 /**
  * 更新边线材质
  * @param material
@@ -675,14 +683,9 @@ function updateMeshMaterial(
  * @param isGuide
  * @param dimmed
  */
-function updateEdgeMaterial(
-  material: THREE.Material | THREE.Material[],
-  highlighted: boolean,
-  isGuide: boolean,
-  dimmed: boolean,
-): void {
+function updateEdgeMaterial(material, highlighted, isGuide, dimmed) {
   const materials = Array.isArray(material) ? material : [material]
-  materials.forEach((item): void => {
+  materials.forEach((item) => {
     if (item instanceof THREE.LineBasicMaterial) {
       item.color.setHex(highlighted ? 0x005f73 : 0x60706a)
       item.opacity = isGuide ? 0.9 : dimmed ? 0.2 : 0.7
@@ -690,31 +693,33 @@ function updateEdgeMaterial(
     }
   })
 }
-
 /**
  * 更新尺寸线材质
  * @param material
  * @param highlighted
  */
-function updateDimensionMaterial(material: THREE.Material | THREE.Material[], highlighted: boolean): void {
+function updateDimensionMaterial(material, highlighted) {
   const materials = Array.isArray(material) ? material : [material]
-  materials.forEach((item): void => {
+  materials.forEach((item) => {
     if (item instanceof LineMaterial) {
       item.color.setHex(highlighted ? 0x005f73 : 0x2f5d62)
       item.opacity = highlighted ? 1 : 0.95
     }
   })
 }
-
 /**
  * 释放 Three.js 对象占用的 geometry 和 material
  * @param object
  */
-function disposeObject(object: THREE.Object3D): void {
-  if (object instanceof LineSegments2 || object instanceof THREE.Mesh || object instanceof THREE.LineSegments) {
+function disposeObject(object) {
+  if (
+    object instanceof LineSegments2 ||
+    object instanceof THREE.Mesh ||
+    object instanceof THREE.LineSegments
+  ) {
     object.geometry.dispose()
     if (Array.isArray(object.material)) {
-      object.material.forEach((material): void => material.dispose())
+      object.material.forEach((material) => material.dispose())
     } else {
       object.material.dispose()
     }

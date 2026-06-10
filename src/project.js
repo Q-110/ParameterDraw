@@ -1,6 +1,4 @@
-import type { ProjectInfo } from '../types'
-
-export const defaultProject: ProjectInfo = {
+export const defaultProject = {
   工程名称: '参数化自动出图',
   文档名称: 'XXX水闸结构图',
   图纸编号规则: 'HN-CBISHI-',

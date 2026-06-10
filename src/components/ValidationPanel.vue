@@ -7,8 +7,6 @@
   </section>
 </template>
 
-<script setup lang="ts">
-defineProps<{
-  errors: string[]
-}>()
+<script setup>
+defineProps(['errors'])
 </script>

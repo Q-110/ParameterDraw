@@ -3,7 +3,12 @@
     <div class="title-row">
       <div>
         <p>方案</p>
-        <input :value="schemeName" class="scheme-name" aria-label="方案名称" @input="updateSchemeName" />
+        <input
+          :value="schemeName"
+          class="scheme-name"
+          aria-label="方案名称"
+          @input="updateSchemeName"
+        />
       </div>
       <span :class="['run-state', runState]">
         {{ runStateText }}
@@ -12,8 +17,16 @@
     <label class="template-field">
       <span>模板</span>
       <div class="template-select">
-        <select :value="templateId" :disabled="runState === 'running'" @change="updateTemplate">
-          <option v-for="template in templates" :key="template.id" :value="template.id">
+        <select
+          :value="templateId"
+          :disabled="runState === 'running'"
+          @change="updateTemplate"
+        >
+          <option
+            v-for="template in templates"
+            :key="template.id"
+            :value="template.id"
+          >
             {{ template.name }}
           </option>
         </select>
@@ -25,37 +38,47 @@
       <button type="button" @click="emit('save')">保存</button>
       <button type="button" @click="emit('saveAs')">另存</button>
     </div>
-    <button type="button" class="primary-action" :disabled="runState === 'running' || validationErrorCount > 0" @click="emit('run')">
+    <button
+      type="button"
+      class="primary-action"
+      :disabled="runState === 'running' || validationErrorCount > 0"
+      @click="emit('run')"
+    >
       {{ runState === 'running' ? '正在出图' : '执行出图' }}
     </button>
-    <input ref="fileInput" type="file" accept="application/json" hidden @change="emit('browserFileChange', $event)" />
+    <input
+      ref="fileInput"
+      type="file"
+      accept="application/json"
+      hidden
+      @change="emit('browserFileChange', $event)"
+    />
   </section>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed, ref } from 'vue'
-import type { RunState, TemplateDefinition } from '../types'
 
-const props = defineProps<{
-  schemeName: string
-  runState: RunState
-  validationErrorCount: number
-  templateId: string
-  templates: TemplateDefinition[]
-}>()
+const props = defineProps([
+  'schemeName',
+  'runState',
+  'validationErrorCount',
+  'templateId',
+  'templates',
+])
 
-const emit = defineEmits<{
-  'update:schemeName': [value: string]
-  'update:templateId': [value: string]
-  new: []
-  open: []
-  save: []
-  saveAs: []
-  run: []
-  browserFileChange: [event: Event]
-}>()
+const emit = defineEmits([
+  'update:schemeName',
+  'update:templateId',
+  'new',
+  'open',
+  'save',
+  'saveAs',
+  'run',
+  'browserFileChange',
+])
 
-const fileInput = ref<HTMLInputElement | null>(null)
+const fileInput = ref(null)
 
 // 运行状态
 const runStateText = computed(() => {
@@ -71,21 +94,25 @@ const runStateText = computed(() => {
   return '待出图'
 })
 
-
 // 方案名称
-function updateSchemeName(event: Event) {
-  emit('update:schemeName', (event.target as HTMLInputElement).value)
+/**
+ * 上报方案名称变化
+ */
+function updateSchemeName(event) {
+  emit('update:schemeName', event.target.value)
 }
 
 /**
  * 切换当前模板
  */
-function updateTemplate(event: Event) {
-  emit('update:templateId', (event.target as HTMLSelectElement).value)
+function updateTemplate(event) {
+  emit('update:templateId', event.target.value)
 }
 
-
 // 打开方案
+/**
+ * 触发浏览器文件选择框
+ */
 function openBrowserFilePicker() {
   fileInput.value?.click()
 }

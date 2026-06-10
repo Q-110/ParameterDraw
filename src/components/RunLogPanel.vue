@@ -8,12 +8,8 @@
   </section>
 </template>
 
-<script setup lang="ts">
-defineProps<{
-  logs: string[]
-}>()
+<script setup>
+defineProps(['logs'])
 
-const emit = defineEmits<{
-  clear: []
-}>()
+const emit = defineEmits(['clear'])
 </script>

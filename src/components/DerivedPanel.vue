@@ -15,23 +15,19 @@
   </section>
 </template>
 
-<script setup lang="ts">
-import type { DerivedFieldDefinition, DerivedSectionDefinition, ParameterValue } from '../types'
-
-defineProps<{
-  sections: DerivedSectionDefinition[]
-  derived: Record<string, ParameterValue>
-}>()
+<script setup>
+defineProps(['sections', 'derived'])
 
 /**
  * 格式化模板派生值
  * @param value   派生值
  * @param field   展示配置
  */
-function formatValue(value: ParameterValue, field: DerivedFieldDefinition) {
-  const text = typeof value === 'number' && !Number.isInteger(value)
-    ? value.toFixed(field.decimals ?? 2)
-    : String(value)
+function formatValue(value, field) {
+  const text =
+    typeof value === 'number' && !Number.isInteger(value)
+      ? value.toFixed(field.decimals ?? 2)
+      : String(value)
   return field.unit ? `${text} ${field.unit}` : text
 }
 </script>

@@ -2,78 +2,68 @@
   <div ref="container" class="preview-canvas"></div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import type { FieldGroup, FocusTarget, PartId } from '../../../../types.js'
-import type { DerivedValues, PreviewOptions, SluicePreviewParameters } from '../types.js'
 import {
   clearPreviewMeshes,
   createPreviewContext,
   disposePreviewContext,
   fitPartToView,
   renderPreview,
-  type PreviewContext,
   updatePreviewHighlight,
 } from './previewScene.js'
 import { buildSluicePart } from './sluicePreviewGeometry.js'
 
-const props = defineProps<{
-  part: PartId
-  params: SluicePreviewParameters
-  derived: DerivedValues
-  focus: FocusTarget | null
-  groups: FieldGroup[]
-  previewOptions: PreviewOptions
-}>()
+const props = defineProps([
+  'part',
+  'params',
+  'derived',
+  'focus',
+  'groups',
+  'previewOptions',
+])
 
-const container = ref<HTMLDivElement | null>(null)
-let context: PreviewContext | null = null
-const viewStates = new Map<PartId, {
-  cameraPosition: [number, number, number]
-  cameraZoom: number
-  panOffset: [number, number]
-}>()
+const container = ref(null)
+let context = null
+const viewStates = new Map()
 
 defineExpose({ resetDefaultView })
 
 /**
  * 为当前部件创建独立的 Three.js 场景并完成首次绘制
  */
-onMounted((): void => {
+onMounted(() => {
   if (container.value) {
     context = createPreviewContext(container.value, props.part)
     rebuildPreview()
   }
 })
 
-
 /**
  * 组件卸载时释放几何体  渲染器  控制器和尺寸监听
  */
-onBeforeUnmount((): void => {
+onBeforeUnmount(() => {
   if (context) {
     disposePreviewContext(context)
     context = null
   }
 })
 
-
 /**
  * 任何参数变化  ->  重建几何体
  */
 watch(
-  (): SluicePreviewParameters => props.params,
-  (): void => rebuildPreview(),
+  () => props.params,
+  () => rebuildPreview(),
   { deep: true },
 )
-
 
 /**
  * 部件 ID 变化  ->  重建几何体 && 更新 ID
  */
 watch(
-  (): PartId => props.part,
-  (part, previousPart): void => {
+  () => props.part,
+  (part, previousPart) => {
     if (context) {
       viewStates.set(previousPart, {
         cameraPosition: context.camera.position.toArray(),
@@ -98,20 +88,18 @@ watch(
   },
 )
 
-
 /**
  * 部件 ID || 区域 变化  ->  更新高亮
  */
 watch(
-  (): [PartId | undefined, string | undefined, string | undefined] => [props.focus?.part, props.focus?.region, props.focus?.guideRegion],
-  (): void => updateHighlight(),
+  () => [props.focus?.part, props.focus?.region, props.focus?.guideRegion],
+  () => updateHighlight(),
 )
-
 
 /**
  * 参数 || 部件 变化  ->  重建当前几何
  */
-function rebuildPreview(): void {
+function rebuildPreview() {
   if (!context) return
 
   // 清理旧几何
@@ -136,7 +124,7 @@ function rebuildPreview(): void {
 /**
  * 焦点变化  ->  更新高亮材质 && 保留当前几何和用户视角
  */
-function updateHighlight(): void {
+function updateHighlight() {
   if (!context) {
     return
   }
@@ -151,7 +139,7 @@ function updateHighlight(): void {
 /**
  * 恢复当前部件默认视角
  */
-function resetDefaultView(): void {
+function resetDefaultView() {
   if (!context) {
     return
   }
