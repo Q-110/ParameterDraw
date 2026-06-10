@@ -1,4 +1,9 @@
-import { cm } from '../units'
+/**
+ * 厘米换算为 Three.js 预览单位
+ */
+function cm(value) {
+  return value * 0.01
+}
 
 export const upstreamConnectionKeys = {
   length: '上游连接段底板长度',

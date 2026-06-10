@@ -1,7 +1,7 @@
 import {
   sluiceBasicFields,
   sluiceDerivedSections,
-} from '../_shared/configuration'
+} from '../_shared/config'
 import {
   computeDerived,
   defaults,

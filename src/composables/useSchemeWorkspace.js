@@ -1,5 +1,5 @@
 import { computed, onBeforeUnmount, reactive, ref } from 'vue'
-import { defaultOutput, defaultProject } from '../config/defaults'
+import { defaultOutput, defaultProject } from '../templates/_shared/config'
 import {
   defaultTemplate,
   getTemplateDefinition,
