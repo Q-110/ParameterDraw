@@ -1,5 +1,6 @@
+import * as THREE from 'three'
 import { makeGatePreviewData } from '../data'
-import { addBox } from '../scene/objects'
+import { addBox, addGeometry } from '../scene/objects'
 
 /**
  * 闸室
@@ -18,10 +19,20 @@ export function buildGate(context, params, derived) {
     openingCenterX,
     doorWidth,
     doorThick,
+    doorCenterZ,
     doorUpstreamZ,
+    doorDownstreamZ,
     slotDepth,
+    slotUpstreamZ,
+    slotDownstreamZ,
+    slotSecondWidth,
+    doorPierDepth,
     serviceWidth,
     serviceThick,
+    serviceSpan,
+    serviceCenterY,
+    serviceUpstreamZ,
+    serviceDownstreamZ,
     toothHeight,
     toothWidth,
     trafficBridge,
@@ -67,7 +78,7 @@ export function buildGate(context, params, derived) {
     0,
     true,
   )
-  // 闸门
+  // 闸门仅作为参数聚焦辅助体   参考模型不创建闸门实体
   addBox(
     context,
     'door',
@@ -76,38 +87,89 @@ export function buildGate(context, params, derived) {
     doorThick,
     openingCenterX,
     floorThick / 2 + pierHeight / 2,
-    doorUpstreamZ - doorThick / 2,
-  )
-  // 门槽
-  addBox(
-    context,
-    'slot',
-    doorWidth,
-    pierHeight,
-    slotDepth,
-    openingCenterX,
-    floorThick / 2 + pierHeight / 2,
-    doorUpstreamZ - slotDepth / 2,
+    doorCenterZ,
     0,
     0,
     true,
   )
-  // 检修桥
+  // 门槽底部横梁
+  addBox(
+    context,
+    'slot',
+    doorWidth,
+    slotDepth,
+    slotUpstreamZ - slotDownstreamZ,
+    openingCenterX,
+    floorThick / 2 - slotDepth / 2,
+    (slotUpstreamZ + slotDownstreamZ) / 2,
+  )
+  // 门槽四根侧柱   分别位于闸门前后和闸孔左右两侧
+  addBox(
+    context,
+    'slot',
+    doorPierDepth,
+    pierHeight,
+    slotSecondWidth,
+    -openingWidth / 2 - doorPierDepth / 2,
+    floorThick / 2 + pierHeight / 2,
+    doorUpstreamZ + slotSecondWidth / 2,
+  )
+  addBox(
+    context,
+    'slot',
+    doorPierDepth,
+    pierHeight,
+    slotSecondWidth,
+    openingWidth / 2 + doorPierDepth / 2,
+    floorThick / 2 + pierHeight / 2,
+    doorUpstreamZ + slotSecondWidth / 2,
+  )
+  addBox(
+    context,
+    'slot',
+    doorPierDepth,
+    pierHeight,
+    slotSecondWidth,
+    -openingWidth / 2 - doorPierDepth / 2,
+    floorThick / 2 + pierHeight / 2,
+    doorDownstreamZ - slotSecondWidth / 2,
+  )
+  addBox(
+    context,
+    'slot',
+    doorPierDepth,
+    pierHeight,
+    slotSecondWidth,
+    openingWidth / 2 + doorPierDepth / 2,
+    floorThick / 2 + pierHeight / 2,
+    doorDownstreamZ - slotSecondWidth / 2,
+  )
+  // 检修桥   分别贴合门槽上游和下游外侧
   addBox(
     context,
     'serviceBridge',
-    width - pierThick,
+    serviceSpan,
     serviceThick,
     serviceWidth,
     0,
-    floorThick / 2 + pierHeight + serviceThick / 2,
-    doorUpstreamZ,
+    serviceCenterY,
+    serviceUpstreamZ,
+  )
+  addBox(
+    context,
+    'serviceBridge',
+    serviceSpan,
+    serviceThick,
+    serviceWidth,
+    0,
+    serviceCenterY,
+    serviceDownstreamZ,
   )
   // 交通桥   始终创建   addBox 内部按维度有效性判断
   addBox(
     context,
     'trafficBridge',
-    width,
+    openingWidth,
     trafficBridge.thick,
     trafficBridge.width,
     0,
@@ -120,7 +182,7 @@ export function buildGate(context, params, derived) {
     trafficBridge.approachSlabLength,
     trafficBridge.thick,
     trafficBridge.width,
-    -width / 2 - trafficBridge.approachSlabLength / 2,
+    -openingWidth / 2 - trafficBridge.approachSlabLength / 2,
     trafficBridge.centerY,
     trafficBridge.centerZ,
   )
@@ -130,19 +192,85 @@ export function buildGate(context, params, derived) {
     trafficBridge.approachSlabLength,
     trafficBridge.thick,
     trafficBridge.width,
-    width / 2 + trafficBridge.approachSlabLength / 2,
+    openingWidth / 2 + trafficBridge.approachSlabLength / 2,
     trafficBridge.centerY,
     trafficBridge.centerZ,
   )
-  // 齿墙
+  // 交通桥护边   沿桥宽的上游和下游边缘布置
   addBox(
     context,
-    'tooth',
-    width,
-    toothHeight,
-    toothWidth,
+    'trafficBridge',
+    trafficBridge.totalSpan,
+    trafficBridge.edgeHeight,
+    trafficBridge.edgeThick,
     0,
-    -floorThick / 2 - toothHeight / 2,
-    -length / 2 + toothWidth / 2,
+    trafficBridge.topY + trafficBridge.edgeHeight / 2,
+    trafficBridge.upstreamZ - trafficBridge.edgeThick / 2,
   )
+  addBox(
+    context,
+    'trafficBridge',
+    trafficBridge.totalSpan,
+    trafficBridge.edgeHeight,
+    trafficBridge.edgeThick,
+    0,
+    trafficBridge.topY + trafficBridge.edgeHeight / 2,
+    trafficBridge.downstreamZ + trafficBridge.edgeThick / 2,
+  )
+  // 上游齿墙   平底段和斜面均按齿墙宽参数创建
+  const floorBottomY = -floorThick / 2
+  const toothBottomY = floorBottomY - toothHeight
+  const upstreamToothVertices = new Float32Array([
+    -width / 2, floorBottomY, length / 2,
+    -width / 2, toothBottomY, length / 2,
+    -width / 2, toothBottomY, length / 2 - toothWidth,
+    -width / 2, floorBottomY, length / 2 - toothWidth * 2,
+    width / 2, floorBottomY, length / 2,
+    width / 2, toothBottomY, length / 2,
+    width / 2, toothBottomY, length / 2 - toothWidth,
+    width / 2, floorBottomY, length / 2 - toothWidth * 2,
+  ])
+  const toothIndices = [
+    0, 2, 1, 0, 3, 2,
+    4, 5, 6, 4, 6, 7,
+    0, 1, 5, 0, 5, 4,
+    1, 2, 6, 1, 6, 5,
+    2, 3, 7, 2, 7, 6,
+    3, 0, 4, 3, 4, 7,
+  ]
+  const upstreamToothGeometry = new THREE.BufferGeometry()
+  upstreamToothGeometry.setAttribute(
+    'position',
+    new THREE.BufferAttribute(upstreamToothVertices, 3),
+  )
+  upstreamToothGeometry.setIndex(toothIndices)
+  upstreamToothGeometry.computeVertexNormals()
+  addGeometry(context, 'tooth', upstreamToothGeometry)
+
+  // 下游齿墙   与上游齿墙镜像布置
+  const downstreamToothVertices = new Float32Array([
+    -width / 2, floorBottomY, -length / 2,
+    -width / 2, toothBottomY, -length / 2,
+    -width / 2, toothBottomY, -length / 2 + toothWidth,
+    -width / 2, floorBottomY, -length / 2 + toothWidth * 2,
+    width / 2, floorBottomY, -length / 2,
+    width / 2, toothBottomY, -length / 2,
+    width / 2, toothBottomY, -length / 2 + toothWidth,
+    width / 2, floorBottomY, -length / 2 + toothWidth * 2,
+  ])
+  const downstreamToothGeometry = new THREE.BufferGeometry()
+  downstreamToothGeometry.setAttribute(
+    'position',
+    new THREE.BufferAttribute(downstreamToothVertices, 3),
+  )
+  downstreamToothGeometry.setIndex([
+    0, 1, 2, 0, 2, 3,
+    4, 6, 5, 4, 7, 6,
+    0, 5, 1, 0, 4, 5,
+    1, 6, 2, 1, 5, 6,
+    2, 7, 3, 2, 6, 7,
+    3, 4, 0, 3, 7, 4,
+  ])
+  downstreamToothGeometry.computeVertexNormals()
+  addGeometry(context, 'tooth', downstreamToothGeometry)
 }

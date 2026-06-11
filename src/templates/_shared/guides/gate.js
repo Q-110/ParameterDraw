@@ -16,14 +16,17 @@ export function addGateGuides(context, params, derived) {
     pierThick,
     openingWidth,
     doorWidth,
+    doorCenterZ,
     doorDownstreamZ,
     doorUpstreamZ,
+    slotDepth,
+    slotUpstreamZ,
     slotDownstreamZ,
     serviceWidth,
     serviceThick,
     servicePierDepth,
+    serviceUpstreamZ,
     doorPierDepth,
-    slotSecondWidth,
     toothHeight,
     toothWidth,
     firstOpeningX,
@@ -104,7 +107,7 @@ export function addGateGuides(context, params, derived) {
     '闸门距上游',
     firstOpeningX + doorWidth / 2 + offset,
     topY + offset,
-    doorUpstreamZ,
+    doorCenterZ,
     length / 2,
     tickSize,
   )
@@ -126,22 +129,22 @@ export function addGateGuides(context, params, derived) {
     doorUpstreamZ,
     tickSize,
   )
-  addZGuide(
+  addYGuide(
     context,
     '门槽深',
     firstOpeningX + doorWidth / 2 + offset,
-    topY,
+    floorThick / 2 - slotDepth,
+    floorThick / 2,
     slotDownstreamZ,
-    doorUpstreamZ,
     tickSize,
   )
-  addXGuide(
+  addZGuide(
     context,
     '门槽二期宽',
-    firstOpeningX - doorWidth / 2,
-    firstOpeningX - doorWidth / 2 + slotSecondWidth,
+    firstOpeningX + doorWidth / 2 + offset,
     topY,
-    slotDownstreamZ,
+    doorUpstreamZ,
+    slotUpstreamZ,
     tickSize,
   )
   addXGuide(
@@ -149,26 +152,26 @@ export function addGateGuides(context, params, derived) {
     '检修桥入闸墩深',
     -width / 2 + pierThick - servicePierDepth,
     -width / 2 + pierThick,
-    topY + serviceThick,
-    doorUpstreamZ,
+    topY,
+    serviceUpstreamZ,
     tickSize,
   )
   addYGuide(
     context,
     '检修桥板厚',
     width / 2 + offset,
+    topY - serviceThick,
     topY,
-    topY + serviceThick,
-    doorUpstreamZ,
+    serviceUpstreamZ,
     tickSize,
   )
   addZGuide(
     context,
     '检修桥板宽',
     sideX,
-    topY + serviceThick,
-    doorUpstreamZ - serviceWidth / 2,
-    doorUpstreamZ + serviceWidth / 2,
+    topY,
+    slotUpstreamZ,
+    slotUpstreamZ + serviceWidth,
     tickSize,
   )
   // 交通桥尺寸辅助线   始终创建   addDimensionLine 内部按有效性判断
@@ -185,9 +188,9 @@ export function addGateGuides(context, params, derived) {
     context,
     '交通桥厚',
     width / 2 + offset,
-    topY + serviceThick,
+    trafficBridge.bottomY,
     trafficBridge.topY,
-    trafficBridge.downstreamZ / 2 + offset,
+    trafficBridge.centerZ,
     tickSize,
   )
   addZGuide(
@@ -202,19 +205,19 @@ export function addGateGuides(context, params, derived) {
   addXGuide(
     context,
     '搭板长',
-    width / 2,
-    width / 2 + trafficBridge.approachSlabLength,
+    openingWidth / 2,
+    openingWidth / 2 + trafficBridge.approachSlabLength,
     trafficBridge.topY + offset,
     trafficBridge.downstreamZ,
     tickSize,
   )
-  addXGuide(
+  addZGuide(
     context,
     '交通桥护边厚',
-    width / 2,
-    width / 2 - trafficBridge.edgeThick,
+    width / 2 + offset,
     trafficBridge.topY,
-    trafficBridge.downstreamZ / 2 + offset,
+    trafficBridge.downstreamZ,
+    trafficBridge.downstreamZ + trafficBridge.edgeThick,
     tickSize,
   )
   addYGuide(
@@ -223,7 +226,7 @@ export function addGateGuides(context, params, derived) {
     width / 2 + offset,
     trafficBridge.topY,
     trafficBridge.topY + trafficBridge.edgeHeight,
-    trafficBridge.downstreamZ / 2 + offset,
+    trafficBridge.downstreamZ + trafficBridge.edgeThick / 2,
     tickSize,
   )
 }

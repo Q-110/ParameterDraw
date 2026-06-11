@@ -86,15 +86,22 @@ export function makeGatePreviewData(params, derived) {
   const openingWidth = cm(params.闸孔净宽)
   const doorWidth = cm(derived.闸门宽)
   const doorThick = cm(params.闸门厚)
-  const doorUpstreamZ = length / 2 - cm(params.闸门距上游)
+  const doorCenterZ = length / 2 - cm(params.闸门距上游)
+  const doorUpstreamZ = doorCenterZ + doorThick / 2
+  const doorDownstreamZ = doorCenterZ - doorThick / 2
   const slotDepth = cm(params.门槽深)
+  const slotSecondWidth = cm(params.门槽二期宽)
+  const slotUpstreamZ = doorUpstreamZ + slotSecondWidth
+  const slotDownstreamZ = doorDownstreamZ - slotSecondWidth
   const serviceWidth = cm(params.检修桥板宽)
   const serviceThick = cm(params.检修桥板厚)
+  const servicePierDepth = cm(params.检修桥入闸墩深)
   const topY = floorThick / 2 + pierHeight
 
   // 始终读取交通桥参数   模板不提供则值为 undefined -> cm() 返回 NaN -> addBox/addDimensionLine 跳过
   const bridgeWidth = cm(params.交通桥宽)
   const bridgeThick = cm(params.交通桥厚)
+  const approachSlabLength = cm(params.搭板长)
   const upstreamZ = length / 2 - cm(params.桥边距上游)
   const trafficBridge = {
     width: bridgeWidth,
@@ -102,9 +109,11 @@ export function makeGatePreviewData(params, derived) {
     upstreamZ,
     downstreamZ: upstreamZ - bridgeWidth,
     centerZ: upstreamZ - bridgeWidth / 2,
-    approachSlabLength: cm(params.搭板长),
-    centerY: topY + serviceThick + bridgeThick / 2,
-    topY: topY + serviceThick + bridgeThick,
+    approachSlabLength,
+    totalSpan: openingWidth + approachSlabLength * 2,
+    centerY: topY - bridgeThick / 2,
+    bottomY: topY - bridgeThick,
+    topY,
     edgeThick: cm(params.交通桥护边厚),
     edgeHeight: cm(params.交通桥护边高),
   }
@@ -119,15 +128,21 @@ export function makeGatePreviewData(params, derived) {
     openingCenterX: 0,
     doorWidth,
     doorThick,
+    doorCenterZ,
     doorUpstreamZ,
-    doorDownstreamZ: doorUpstreamZ - doorThick,
+    doorDownstreamZ,
     slotDepth,
-    slotDownstreamZ: doorUpstreamZ - slotDepth,
+    slotUpstreamZ,
+    slotDownstreamZ,
     serviceWidth,
     serviceThick,
-    servicePierDepth: cm(params.检修桥入闸墩深),
+    servicePierDepth,
+    serviceSpan: openingWidth + servicePierDepth * 2,
+    serviceCenterY: topY - serviceThick / 2,
+    serviceUpstreamZ: slotUpstreamZ + serviceWidth / 2,
+    serviceDownstreamZ: slotDownstreamZ - serviceWidth / 2,
     doorPierDepth: cm(params.门槽入闸墩深),
-    slotSecondWidth: cm(params.门槽二期宽),
+    slotSecondWidth,
     toothHeight: cm(params.齿墙高),
     toothWidth: cm(params.齿墙宽),
     firstOpeningX: -width / 2 + pierThick + openingWidth / 2,
