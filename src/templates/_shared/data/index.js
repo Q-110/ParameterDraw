@@ -342,20 +342,11 @@ export function makeTransitionPreviewData(params, derived, isUpstream) {
     upper,
     middle,
     lower,
-    frontMiddle: mixSection(upper, middle, 0.5),
-    backMiddle: mixSection(middle, lower, 0.5),
     floorThick: cm(params[keys.floorThick]),
     totalLength,
     startZ,
     middleZ,
     endZ: -totalLength / 2,
-    frontMiddleZ: startZ - firstLength / 2,
-    backMiddleZ: middleZ - secondLength / 2,
-    toeHeight: cm(params[keys.toeHeight]),
-    toeWidth: cm(params[keys.toeWidth]),
-    heelHeight: cm(params[keys.heelHeight]),
-    topHeight: cm(params[keys.topHeight]),
-    topWidth: cm(params[keys.topWidth]),
     toothHeight: cm(params[keys.toothHeight]),
     toothWidth: cm(params[keys.toothWidth]),
   }
@@ -369,68 +360,93 @@ export function makeTransitionPreviewData(params, derived, isUpstream) {
  * @param section
  */
 function makeTransitionSection(params, derived, isUpstream, section) {
-  if (isUpstream && section === 'upper') {
-    return {
-      floorWidth: cm(params.上游渐变段上断面铺盖宽),
-      bottomWidth: cm(params.上游渐变段上断面底宽),
-      slopeWidth: cm(params.上游渐变段上断面坡宽),
-      slopeHeight: cm(params.上游渐变段上断面坡高),
-    }
-  }
-  if (isUpstream && section === 'middle') {
-    return {
-      floorWidth: cm(derived.上游渐变段中断面铺盖宽),
-      bottomWidth: cm(params.上游渐变段中断面底宽),
-      slopeWidth: cm(params.上游渐变段中断面坡宽),
-      slopeHeight: cm(params.上游渐变段中断面坡高),
-    }
-  }
-  if (isUpstream) {
-    return {
-      floorWidth: cm(derived.上游渐变段下断面铺盖宽),
-      bottomWidth: cm(params.上游渐变段下断面底宽),
-      slopeWidth: cm(params.上游渐变段中断面坡宽),
-      slopeHeight: cm(params.上游渐变段下断面坡高),
-    }
-  }
-  if (section === 'upper') {
-    return {
-      floorWidth: cm(derived.下游渐变段上断面铺盖宽),
-      bottomWidth: cm(params.下游渐变段上断面底宽),
-      slopeWidth: cm(params.下游渐变段中断面坡宽),
-      slopeHeight: cm(derived.下游渐变段上断面坡高),
-    }
-  }
-  if (section === 'middle') {
-    return {
-      floorWidth: cm(derived.下游渐变段中断面铺盖宽),
-      bottomWidth: cm(params.下游渐变段中断面底宽),
-      slopeWidth: cm(params.下游渐变段中断面坡宽),
-      slopeHeight: cm(derived.下游渐变段中断面坡高),
-    }
-  }
-  return {
-    floorWidth: cm(params.下游渐变段下断面铺盖宽),
-    bottomWidth: cm(params.下游渐变段下断面底宽),
-    slopeWidth: cm(params.下游渐变段下断面坡宽),
-    slopeHeight: cm(derived.下游渐变段中断面坡高),
-  }
-}
+  const toeHeight = cm(
+    isUpstream
+      ? params.上游渐变段中断面趾高
+      : params.下游渐变段中断面趾高,
+  )
+  const toeWidth = cm(
+    isUpstream
+      ? params.上游渐变段中断面趾宽
+      : params.下游渐变段中断面趾宽,
+  )
+  const heelHeight = cm(
+    isUpstream
+      ? params.上游渐变段中断面踵高
+      : params.下游渐变段中断面踵高,
+  )
+  const topHeight = cm(
+    isUpstream
+      ? params.上游渐变段中断面顶端高
+      : params.下游渐变段中断面顶端高,
+  )
+  const topWidth = cm(
+    isUpstream
+      ? params.上游渐变段中断面顶端宽
+      : params.下游渐变段中断面顶端宽,
+  )
+  let floorWidth
+  let bottomWidth
+  let slopeWidth
+  let slopeHeight
 
-/**
- * 计算两个渐变断面之间的插值断面
- * 用于把连续渐变段拆成可高亮的几段   同时保持尺寸线性变化
- * @param start   起点断面
- * @param end     终点断面
- * @param ratio   插值比例  0 表示起点  1 表示终点
- */
-function mixSection(start, end, ratio) {
+  if (isUpstream && section === 'upper') {
+    floorWidth = cm(params.上游渐变段上断面铺盖宽)
+    bottomWidth = cm(params.上游渐变段上断面底宽)
+    slopeWidth = cm(params.上游渐变段上断面坡宽)
+    slopeHeight = cm(params.上游渐变段上断面坡高)
+  } else if (isUpstream && section === 'middle') {
+    floorWidth = cm(derived.上游渐变段中断面铺盖宽)
+    bottomWidth = cm(params.上游渐变段中断面底宽)
+    slopeWidth = cm(params.上游渐变段中断面坡宽)
+    slopeHeight = cm(params.上游渐变段中断面坡高)
+  } else if (isUpstream) {
+    floorWidth = cm(derived.上游渐变段下断面铺盖宽)
+    bottomWidth = cm(params.上游渐变段下断面底宽)
+    slopeWidth = 0
+    slopeHeight = cm(params.上游渐变段下断面坡高)
+  } else if (section === 'upper') {
+    floorWidth = cm(derived.下游渐变段上断面铺盖宽)
+    bottomWidth = cm(params.下游渐变段上断面底宽)
+    slopeWidth = 0
+    slopeHeight = cm(derived.下游渐变段上断面坡高)
+  } else if (section === 'middle') {
+    floorWidth = cm(derived.下游渐变段中断面铺盖宽)
+    bottomWidth = cm(params.下游渐变段中断面底宽)
+    slopeWidth = cm(params.下游渐变段中断面坡宽)
+    slopeHeight = cm(derived.下游渐变段中断面坡高)
+  } else {
+    floorWidth = cm(params.下游渐变段下断面铺盖宽)
+    bottomWidth = cm(params.下游渐变段下断面底宽)
+    slopeWidth = cm(params.下游渐变段下断面坡宽)
+    slopeHeight = cm(derived.下游渐变段下断面坡高)
+  }
+
+  const floorEdgeX = floorWidth / 2
+  const toeOuterX = floorEdgeX + toeWidth
+  const slopeTopX = toeOuterX + slopeWidth
+  const topOuterX = slopeTopX + topWidth
+  const outerBottomX = floorEdgeX + bottomWidth
+  const wallBottomY = -toeHeight
+
   return {
-    floorWidth: start.floorWidth + (end.floorWidth - start.floorWidth) * ratio,
-    bottomWidth:
-      start.bottomWidth + (end.bottomWidth - start.bottomWidth) * ratio,
-    slopeWidth: start.slopeWidth + (end.slopeWidth - start.slopeWidth) * ratio,
-    slopeHeight:
-      start.slopeHeight + (end.slopeHeight - start.slopeHeight) * ratio,
+    floorWidth,
+    bottomWidth,
+    slopeWidth,
+    slopeHeight,
+    toeHeight,
+    toeWidth,
+    heelHeight,
+    topHeight,
+    topWidth,
+    floorEdgeX,
+    toeOuterX,
+    slopeTopX,
+    topOuterX,
+    outerBottomX,
+    wallBottomY,
+    heelTopY: wallBottomY + heelHeight,
+    topLowerY: slopeHeight - topHeight,
+    outerX: Math.max(topOuterX, outerBottomX),
   }
 }
