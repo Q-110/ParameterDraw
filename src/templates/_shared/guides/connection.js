@@ -13,14 +13,9 @@ export function addConnectionGuides(context, params, derived, isUpstream) {
   const {
     keys,
     length,
-    width: floorWidth,
     floorThick,
     toothHeight,
     toothWidth,
-    pressWidth,
-    ditchWidth,
-    ditchHeight,
-    ditchOuterWidth,
     slopeThick,
     slopeToothThick,
     slopeToothWidth,
@@ -29,48 +24,53 @@ export function addConnectionGuides(context, params, derived, isUpstream) {
     floorTopY,
     ditchBottomY,
     floorBottomY,
-    innerDitchX,
-    outerDitchX,
+    floorEdgeX,
+    ditchOuterX,
+    slopeLowerFootX,
+    slopeLowerFootY,
+    slopeTopX,
+    pressOuterX,
+    slopeDirectionX,
+    slopeDirectionY,
+    slopeNormalX,
+    slopeNormalY,
+    slopeToothOuterY,
   } = makeConnectionPreviewData(params, derived, isUpstream)
-  const floorEdgeX = floorWidth / 2
   const maxSize = Math.max(
     length,
-    outerDitchX * 2 + slopeWidth * 2,
+    pressOuterX * 2,
     slopeHeight,
   )
   const offset = Math.max(maxSize * 0.06, 0.18)
   const tickSize = Math.max(maxSize * 0.04, 0.18)
-  const outerSlopeX = outerDitchX + slopeWidth
-  const slopeAngle = Math.atan2(slopeHeight, slopeWidth)
-  const slopeLength = Math.hypot(slopeWidth, slopeHeight)
   const slopeDirection = new THREE.Vector3(
-    Math.cos(slopeAngle),
-    Math.sin(slopeAngle),
+    slopeDirectionX,
+    slopeDirectionY,
     0,
   )
   const slopeNormal = new THREE.Vector3(
-    -Math.sin(slopeAngle),
-    Math.cos(slopeAngle),
+    slopeNormalX,
+    slopeNormalY,
     0,
   )
-  const slopeMiddle = new THREE.Vector3(
-    outerDitchX + slopeWidth / 2,
-    ditchBottomY + slopeHeight / 2 + slopeThick / 2,
+  const slopeTopMiddle = new THREE.Vector3(
+    floorEdgeX + slopeWidth / 2,
+    floorTopY + slopeHeight / 2,
     length / 2,
   )
-  const toothMiddle = new THREE.Vector3(
-    outerDitchX,
-    ditchBottomY + slopeThick / 2,
-    length / 2,
-  )
-    .addScaledVector(slopeDirection, slopeLength * 0.25)
-    .addScaledVector(slopeNormal, -(slopeThick + slopeToothThick) / 2)
+  const slopeBottomMiddle = slopeTopMiddle
+    .clone()
+    .addScaledVector(slopeNormal, slopeThick)
+  const toothTopMiddle = slopeBottomMiddle.clone()
+  const toothBottomMiddle = toothTopMiddle
+    .clone()
+    .addScaledVector(slopeNormal, slopeToothThick)
   // 底板长度
   addZGuide(
     context,
     keys.length,
-    floorWidth / 2 + offset,
-    floorThick / 2,
+    pressOuterX + offset,
+    floorTopY,
     -length / 2,
     length / 2,
     tickSize,
@@ -81,36 +81,40 @@ export function addConnectionGuides(context, params, derived, isUpstream) {
     keys.floorThick,
     floorEdgeX,
     floorBottomY,
-    ditchBottomY,
+    floorTopY,
     length / 2,
     tickSize,
   )
-  // 齿墙高/宽
-  addYGuide(
-    context,
-    keys.toothHeight,
-    floorWidth / 2 + offset,
-    floorBottomY - toothHeight,
-    floorBottomY,
-    -length / 2 + toothWidth / 2,
-    tickSize,
-  )
-  addZGuide(
-    context,
-    keys.toothWidth,
-    floorWidth / 2 + offset,
-    floorBottomY - toothHeight,
-    -length / 2,
-    -length / 2 + toothWidth,
-    tickSize,
-  )
+  // 两端齿墙使用同一参数   同时显示两处实际位置
+  for (const side of [-1, 1]) {
+    const endZ = side * length / 2
+    const innerZ = endZ - side * toothWidth
+    addYGuide(
+      context,
+      keys.toothHeight,
+      floorEdgeX + offset,
+      floorBottomY - toothHeight,
+      floorBottomY,
+      (endZ + innerZ) / 2,
+      tickSize,
+    )
+    addZGuide(
+      context,
+      keys.toothWidth,
+      floorEdgeX + offset,
+      floorBottomY - toothHeight,
+      Math.min(endZ, innerZ),
+      Math.max(endZ, innerZ),
+      tickSize,
+    )
+  }
   // 压坡宽
   addXGuide(
     context,
     keys.pressWidth,
-    outerSlopeX,
-    outerSlopeX + pressWidth,
-    ditchBottomY + slopeHeight,
+    slopeTopX,
+    pressOuterX,
+    slopeHeight,
     length / 2 + offset,
     tickSize,
   )
@@ -118,8 +122,8 @@ export function addConnectionGuides(context, params, derived, isUpstream) {
   addXGuide(
     context,
     keys.ditchWidth,
-    innerDitchX,
     floorEdgeX,
+    ditchOuterX,
     ditchBottomY - offset,
     length / 2,
     tickSize,
@@ -128,28 +132,29 @@ export function addConnectionGuides(context, params, derived, isUpstream) {
   addYGuide(
     context,
     keys.ditchHeight,
-    innerDitchX - offset,
+    floorEdgeX - offset,
     ditchBottomY,
     floorTopY,
     length / 2,
     tickSize,
   )
   // 坡底外槽宽
-  addXGuide(
+  addVectorGuide(
     context,
     keys.ditchOuterWidth,
-    floorEdgeX,
-    outerDitchX,
-    ditchBottomY - offset,
-    length / 2,
+    new THREE.Vector3(ditchOuterX, ditchBottomY - offset * 2, length / 2),
+    new THREE.Vector3(slopeLowerFootX, ditchBottomY - offset * 2, length / 2),
+    new THREE.Vector3(0, 0, 1),
     tickSize,
+    new THREE.Vector3(ditchOuterX, ditchBottomY, length / 2),
+    new THREE.Vector3(slopeLowerFootX, slopeLowerFootY, length / 2),
   )
   // 坡板厚度
   addVectorGuide(
     context,
     keys.slopeThick,
-    slopeMiddle.clone().addScaledVector(slopeNormal, -slopeThick / 2),
-    slopeMiddle.clone().addScaledVector(slopeNormal, slopeThick / 2),
+    slopeTopMiddle,
+    slopeBottomMiddle,
     slopeDirection,
     tickSize,
   )
@@ -157,17 +162,18 @@ export function addConnectionGuides(context, params, derived, isUpstream) {
   addVectorGuide(
     context,
     keys.slopeToothThick,
-    toothMiddle.clone().addScaledVector(slopeNormal, -slopeToothThick / 2),
-    toothMiddle.clone().addScaledVector(slopeNormal, slopeToothThick / 2),
+    toothTopMiddle.setZ(-length / 2 + slopeToothWidth / 2),
+    toothBottomMiddle.setZ(-length / 2 + slopeToothWidth / 2),
     slopeDirection,
     tickSize,
   )
-  addVectorGuide(
+  addZGuide(
     context,
     keys.slopeToothWidth,
-    toothMiddle.clone().addScaledVector(slopeDirection, -slopeToothWidth / 2),
-    toothMiddle.clone().addScaledVector(slopeDirection, slopeToothWidth / 2),
-    slopeNormal,
+    pressOuterX,
+    slopeToothOuterY - offset,
+    -length / 2,
+    -length / 2 + slopeToothWidth,
     tickSize,
   )
 }

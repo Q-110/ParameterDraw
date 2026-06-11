@@ -225,10 +225,55 @@ export function makeConnectionPreviewData(params, derived, isUpstream) {
   const ditchWidth = cm(params[keys.ditchWidth])
   const ditchHeight = cm(params[keys.ditchHeight])
   const ditchOuterWidth = cm(params[keys.ditchOuterWidth])
-  const floorTopY = floorThick / 2
-  const ditchBottomY = floorTopY - ditchHeight
-  const floorBottomY = ditchBottomY - floorThick
-  const outerDitchX = width / 2 + ditchOuterWidth
+  const slopeThick = cm(params[keys.slopeThick])
+  const pressWidth = cm(params[keys.pressWidth])
+  const slopeToothThick = cm(params[keys.slopeToothThick])
+  const slopeToothWidth = cm(params[keys.slopeToothWidth])
+  const floorTopY = 0
+  const floorBottomY = -floorThick
+  const ditchBottomY = -ditchHeight
+  const floorEdgeX = width / 2
+  const ditchOuterX = floorEdgeX + ditchWidth
+  const slopeLowerFootX = ditchOuterX + ditchOuterWidth
+  const slopeTopX = floorEdgeX + slopeWidth
+  const pressOuterX = slopeTopX + pressWidth
+  const slopeAngle = Math.atan2(slopeHeight, slopeWidth)
+  const slopeDirectionX = Math.cos(slopeAngle)
+  const slopeDirectionY = Math.sin(slopeAngle)
+  const slopeNormalX = Math.sin(slopeAngle)
+  const slopeNormalY = -Math.cos(slopeAngle)
+  const lowerSlopeStartX = floorEdgeX + slopeNormalX * slopeThick
+  const lowerSlopeStartY = floorTopY + slopeNormalY * slopeThick
+  const slopeLowerFootY =
+    lowerSlopeStartY +
+    (slopeLowerFootX - lowerSlopeStartX) *
+      slopeDirectionY /
+      slopeDirectionX
+  const pressBottomY = slopeHeight - slopeThick
+  const slopeLowerTopX =
+    lowerSlopeStartX +
+    (pressBottomY - lowerSlopeStartY) *
+      slopeDirectionX /
+      slopeDirectionY
+  const toothOffsetX = slopeLowerFootX + slopeNormalX * slopeToothThick
+  const toothOffsetY = slopeLowerFootY + slopeNormalY * slopeToothThick
+  const ditchRampSlope =
+    (slopeLowerFootY - ditchBottomY) /
+    (slopeLowerFootX - ditchOuterX)
+  const slopeRatio = slopeDirectionY / slopeDirectionX
+  const slopeToothInnerX =
+    (
+      ditchBottomY -
+      ditchRampSlope * ditchOuterX -
+      toothOffsetY +
+      slopeRatio * toothOffsetX
+    ) /
+    (slopeRatio - ditchRampSlope)
+  const slopeToothInnerY =
+    ditchBottomY +
+    ditchRampSlope * (slopeToothInnerX - ditchOuterX)
+  const slopeToothOuterY =
+    toothOffsetY + slopeRatio * (pressOuterX - toothOffsetX)
 
   return {
     keys,
@@ -237,10 +282,10 @@ export function makeConnectionPreviewData(params, derived, isUpstream) {
     slopeWidth,
     slopeHeight,
     floorThick,
-    slopeThick: cm(params[keys.slopeThick]),
-    pressWidth: cm(params[keys.pressWidth]),
-    slopeToothThick: cm(params[keys.slopeToothThick]),
-    slopeToothWidth: cm(params[keys.slopeToothWidth]),
+    slopeThick,
+    pressWidth,
+    slopeToothThick,
+    slopeToothWidth,
     toothHeight: cm(params[keys.toothHeight]),
     toothWidth: cm(params[keys.toothWidth]),
     ditchWidth,
@@ -249,9 +294,21 @@ export function makeConnectionPreviewData(params, derived, isUpstream) {
     floorTopY,
     ditchBottomY,
     floorBottomY,
-    innerDitchX: width / 2 - ditchWidth,
-    outerDitchX,
-    slopeFootWidth: outerDitchX * 2,
+    floorEdgeX,
+    ditchOuterX,
+    slopeLowerFootX,
+    slopeLowerFootY,
+    slopeTopX,
+    pressOuterX,
+    pressBottomY,
+    slopeLowerTopX,
+    slopeDirectionX,
+    slopeDirectionY,
+    slopeNormalX,
+    slopeNormalY,
+    slopeToothInnerX,
+    slopeToothInnerY,
+    slopeToothOuterY,
   }
 }
 
