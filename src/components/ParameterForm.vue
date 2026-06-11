@@ -11,39 +11,50 @@
         {{ group.title }}
       </button>
     </nav>
-    <div class="parameter-grid">
-      <label
-        v-for="field in activeGroup.fields"
-        :key="field.key"
-        :class="['field-row', { readonly: field.readonly }]"
+    <div class="parameter-groups">
+      <section
+        v-for="subgroup in parameterSubgroups"
+        :key="subgroup.name"
+        class="parameter-subgroup"
+        :aria-label="subgroup.name"
       >
-        <span>{{ field.label }}</span>
-        <template v-if="field.readonly">
-          <div class="unit-input">
-            <input :value="formatDerivedText(derived[field.key], field)" readonly />
-            <em>{{ field.unit }}</em>
-          </div>
-        </template>
-        <template v-else>
-          <div class="unit-input">
-            <input
-              :value="params[field.key]"
-              type="number"
-              step="0.01"
-              @input="updateParam(field.key, $event)"
-              @focus="emit('focusField', field)"
-              @blur="emit('blurField')"
-            />
-            <em>{{ field.unit }}</em>
-          </div>
-        </template>
-      </label>
+        <div class="parameter-grid">
+          <label
+            v-for="field in subgroup.fields"
+            :key="field.key"
+            :class="['field-row', { readonly: field.readonly }]"
+          >
+            <span>{{ field.label }}</span>
+            <template v-if="field.readonly">
+              <div class="unit-input">
+                <input :value="formatDerivedText(derived[field.key], field)" readonly />
+                <em>{{ field.unit }}</em>
+              </div>
+            </template>
+            <template v-else>
+              <div class="unit-input">
+                <input
+                  :value="params[field.key]"
+                  type="number"
+                  step="0.01"
+                  @input="updateParam(field.key, $event)"
+                  @focus="emit('focusField', field)"
+                  @blur="emit('blurField')"
+                />
+                <em>{{ field.unit }}</em>
+              </div>
+            </template>
+          </label>
+        </div>
+      </section>
     </div>
   </section>
 </template>
 
 <script setup>
-defineProps(['groups', 'activeGroupId', 'activeGroup', 'params', 'derived'])
+import { computed } from 'vue'
+
+const props = defineProps(['groups', 'activeGroupId', 'activeGroup', 'params', 'derived'])
 
 const emit = defineEmits([
   'update:activeGroupId',
@@ -51,6 +62,26 @@ const emit = defineEmits([
   'focusField',
   'blurField',
 ])
+
+const parameterSubgroups = computed(() => {
+  const subgroups = []
+
+  props.activeGroup.fields.forEach((field) => {
+    const current = subgroups[subgroups.length - 1]
+
+    if (!current || current.name !== field.subgroup) {
+      subgroups.push({
+        name: field.subgroup,
+        fields: [field],
+      })
+      return
+    }
+
+    current.fields.push(field)
+  })
+
+  return subgroups
+})
 
 /**
  * 上报分组参数变化

@@ -9,7 +9,12 @@ if (!window.sluice) {
     saveScheme: async () => null,
     saveSchemeAs: async () => null,
     selectOutputDirectory: async () => null,
-    runDrawing: async () => ({ success: false, outputDir: '', logs: [] }),
+    runDrawing: async () => ({
+      success: false,
+      outputDir: '',
+      logPath: '',
+      logs: [],
+    }),
     onDrawingLog: () => () => {},
   }
 }

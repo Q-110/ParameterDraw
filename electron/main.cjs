@@ -2,6 +2,7 @@ const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron')
 const { spawn } = require('node:child_process')
 const fs = require('node:fs')
 const path = require('node:path')
+const { TextDecoder } = require('node:util')
 
 const isDev = !app.isPackaged
 let drawingRunning = false
@@ -202,6 +203,7 @@ ipcMain.handle('drawing:run', async (event, scheme) => {
       resolve({
         success: false,
         outputDir: scheme.output.savepath,
+        logPath: '',
         logs: ['已有出图任务正在执行'],
       })
       return
@@ -211,6 +213,7 @@ ipcMain.handle('drawing:run', async (event, scheme) => {
       resolve({
         success: false,
         outputDir: scheme.output.savepath,
+        logPath: '',
         logs: ['模板根目录不存在：' + templateRoot],
       })
       return
@@ -221,6 +224,7 @@ ipcMain.handle('drawing:run', async (event, scheme) => {
       resolve({
         success: false,
         outputDir: scheme.output.savepath,
+        logPath: '',
         logs: [`服务器模板目录不存在：${templatePath}`],
       })
       return
@@ -230,7 +234,75 @@ ipcMain.handle('drawing:run', async (event, scheme) => {
       resolve({
         success: false,
         outputDir: scheme.output.savepath,
+        logPath: '',
         logs: [`未找到后端入口：${backendCommand.executable}`],
+      })
+      return
+    }
+
+    const startedAt = new Date()
+    const timestamp = [
+      startedAt.getFullYear(),
+      String(startedAt.getMonth() + 1).padStart(2, '0'),
+      String(startedAt.getDate()).padStart(2, '0'),
+      '-',
+      String(startedAt.getHours()).padStart(2, '0'),
+      String(startedAt.getMinutes()).padStart(2, '0'),
+      String(startedAt.getSeconds()).padStart(2, '0'),
+    ].join('')
+    const logDir = path.join(app.getPath('userData'), 'logs')
+    const logPath = path.join(logDir, `drawing-${timestamp}.log`)
+    const logs = []
+    let logStream
+    let logFileDescriptor
+    let logWriteError = null
+    let child = null
+    let childClosed = false
+    let spawnError = null
+    let resolved = false
+    const outputEncoding = isDev ? 'utf-8' : 'gbk'
+    const stdoutDecoder = new TextDecoder(outputEncoding)
+    const stderrDecoder = new TextDecoder(outputEncoding)
+
+    try {
+      fs.mkdirSync(logDir, { recursive: true })
+      logFileDescriptor = fs.openSync(logPath, 'wx')
+      logStream = fs.createWriteStream(null, {
+        fd: logFileDescriptor,
+        encoding: 'utf-8',
+        autoClose: true,
+      })
+      logStream.on('error', (error) => {
+        if (logWriteError) {
+          return
+        }
+
+        logWriteError = error
+        const text = `写入出图日志失败：${error.message}`
+        logs.push(text)
+        event.sender.send('drawing:log', text)
+        if (child && !childClosed) {
+          child.kill()
+        }
+      })
+      logStream.write(
+        [
+          `开始时间  ${startedAt.toLocaleString('zh-CN', { hour12: false })}`,
+          `模板名称  ${scheme.templateId}`,
+          `成果目录  ${scheme.output.savepath}`,
+          `后端程序  ${backendCommand.executable}`,
+          '',
+        ].join('\n'),
+      )
+    } catch (error) {
+      if (logFileDescriptor !== undefined && !logStream) {
+        fs.closeSync(logFileDescriptor)
+      }
+      resolve({
+        success: false,
+        outputDir: scheme.output.savepath,
+        logPath: '',
+        logs: [`创建出图日志失败：${error.message}`],
       })
       return
     }
@@ -238,8 +310,7 @@ ipcMain.handle('drawing:run', async (event, scheme) => {
     // 通过运行锁和目录校验后再写入   避免重复调用覆盖当前任务方案
     fs.writeFileSync(schemePath, JSON.stringify(scheme, null, 2), 'utf-8')
     drawingRunning = true
-    const logs = []
-    const child = spawn(backendCommand.executable, backendCommand.args, {
+    child = spawn(backendCommand.executable, backendCommand.args, {
       cwd: codeRoot,
       env: {
         ...process.env,
@@ -252,37 +323,88 @@ ipcMain.handle('drawing:run', async (event, scheme) => {
 
     child.stdout.on('data', (chunk) => {
       // 实时发送 标准输出日志 给渲染进程
-      const text = chunk.toString()
+      const text = stdoutDecoder.decode(chunk, { stream: true })
       logs.push(text)
       event.sender.send('drawing:log', text)
+      if (!logStream.destroyed) {
+        logStream.write(text)
+      }
     })
 
     child.stderr.on('data', (chunk) => {
       // 实时发送 错误日志 给渲染进程
-      const text = chunk.toString()
+      const text = stderrDecoder.decode(chunk, { stream: true })
       logs.push(text)
       event.sender.send('drawing:log', text)
+      if (!logStream.destroyed) {
+        logStream.write(text)
+      }
     })
 
     child.on('close', (code) => {
+      childClosed = true
       drawingRunning = false
-      // Python 进程退出后统一返回最终状态和完整日志
-      resolve({
-        success: code === 0,
-        outputDir: scheme.output.savepath,
-        logs,
+      const stdoutTail = stdoutDecoder.decode()
+      const stderrTail = stderrDecoder.decode()
+      if (stdoutTail) {
+        logs.push(stdoutTail)
+        event.sender.send('drawing:log', stdoutTail)
+        if (!logStream.destroyed) {
+          logStream.write(stdoutTail)
+        }
+      }
+      if (stderrTail) {
+        logs.push(stderrTail)
+        event.sender.send('drawing:log', stderrTail)
+        if (!logStream.destroyed) {
+          logStream.write(stderrTail)
+        }
+      }
+      const endedAt = new Date()
+      const footer = [
+        '',
+        `结束时间  ${endedAt.toLocaleString('zh-CN', { hour12: false })}`,
+        `退出状态  ${logWriteError ? '日志写入失败' : spawnError ? '启动失败' : code}`,
+        '',
+      ].join('\n')
+
+      // 等待日志文件写入完成后再返回最终状态
+      if (logStream.closed) {
+        resolved = true
+        resolve({
+          success: code === 0 && !spawnError && !logWriteError,
+          outputDir: scheme.output.savepath,
+          logPath,
+          logs,
+        })
+        return
+      }
+
+      logStream.once('close', () => {
+        if (resolved) {
+          return
+        }
+        resolved = true
+        resolve({
+          success: code === 0 && !spawnError && !logWriteError,
+          outputDir: scheme.output.savepath,
+          logPath,
+          logs,
+        })
       })
+      if (!logStream.destroyed) {
+        logStream.end(footer)
+      }
     })
 
     child.on('error', (error) => {
-      drawingRunning = false
-      event.sender.send('drawing:log', error.message)
-      // 子进程启动失败时 返回结构化错误  避免界面一直停在运行中
-      resolve({
-        success: false,
-        outputDir: scheme.output.savepath,
-        logs: [...logs, error.message],
-      })
+      spawnError = error
+      const text = error.message
+      logs.push(text)
+      event.sender.send('drawing:log', text)
+      if (!logStream.destroyed) {
+        logStream.write(text)
+      }
     })
   })
 })

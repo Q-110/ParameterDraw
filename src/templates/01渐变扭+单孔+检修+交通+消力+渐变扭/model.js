@@ -107,6 +107,13 @@ const rawGroups = [
   {
     id: 'gate',
     title: '闸室',
+    subgroups: [
+      { name: '闸室主体参数', endKey: '齿墙宽' },
+      { name: '闸门参数', endKey: '门槽二期宽' },
+      { name: '检修桥参数', endKey: '检修桥板宽' },
+      { name: '交通桥参数', endKey: '交通桥护边高' },
+      { name: '闸室计算参数', endKey: '闸总宽' },
+    ],
     fields: [
       { key: '闸室长', label: '闸室长', unit: 'cm', part: 'gate', region: 'floor' },
       { key: '闸孔净宽', label: '闸孔净宽', unit: 'cm', part: 'gate', region: 'opening' },
@@ -130,14 +137,21 @@ const rawGroups = [
       { key: '搭板长', label: '搭板长', unit: 'cm', part: 'gate', region: 'approachSlab' },
       { key: '交通桥护边厚', label: '交通桥护边厚', unit: 'cm', part: 'gate', region: 'trafficBridge' },
       { key: '交通桥护边高', label: '交通桥护边高', unit: 'cm', part: 'gate', region: 'trafficBridge' },
+      { key: '闸孔数', label: '闸孔数', readonly: true },
       { key: '闸门宽', label: '闸门宽', unit: 'cm', readonly: true, decimals: 2 },
       { key: '闸总宽', label: '闸总宽', unit: 'cm', readonly: true, decimals: 2 },
-      { key: '闸孔数', label: '闸孔数', readonly: true },
     ],
   },
   {
     id: 'stilling',
     title: '消力池',
+    subgroups: [
+      { name: '消力池主体参数', endKey: '消力池齿墙高度' },
+      { name: '消力池陡坡墙宽参数', endKey: '消力池陡坡段下部墙宽' },
+      { name: '消力池墙体参数', endKey: '消力池斜墙段高度' },
+      { name: '消力坎参数', endKey: '消力坎顶宽' },
+      { name: '消力池计算参数', endKey: '消力池底板宽度' },
+    ],
     fields: [
       { key: '消力池陡坡段平直段长度', label: '陡坡段平直段长度', unit: 'cm', part: 'stilling', region: 'slope' },
       { key: '消力池陡坡段长度', label: '陡坡段长度', unit: 'cm', part: 'stilling', region: 'slope' },
@@ -159,6 +173,12 @@ const rawGroups = [
   {
     id: 'upstreamConnection',
     title: '上游连接',
+    subgroups: [
+      { name: '上游连接底板参数', endKey: '上游连接段底板齿墙宽' },
+      { name: '上游连接坡面构造参数', endKey: '上游连接段坡底外槽宽' },
+      { name: '上游连接计算参数', endKey: '上游连接段渠底板宽' },
+      { name: '上游连接坡板与坡齿参数', endKey: '上游连接段坡齿宽度' },
+    ],
     fields: [
       { key: '上游连接段底板长度', label: '底板长度', unit: 'cm', part: 'upstreamConnection', region: 'floor' },
       { key: '上游连接段底板厚度', label: '底板厚度', unit: 'cm', part: 'upstreamConnection', region: 'floor' },
@@ -168,17 +188,24 @@ const rawGroups = [
       { key: '上游连接段坡底槽宽', label: '坡底槽宽', unit: 'cm', part: 'upstreamConnection', region: 'ditch' },
       { key: '上游连接段坡底槽高', label: '坡底槽高', unit: 'cm', part: 'upstreamConnection', region: 'ditch' },
       { key: '上游连接段坡底外槽宽', label: '坡底外槽宽', unit: 'cm', part: 'upstreamConnection', region: 'ditch' },
-      { key: '上游连接段坡板厚度', label: '坡板厚度', unit: 'cm', part: 'upstreamConnection', region: 'slope' },
-      { key: '上游连接段坡齿厚度', label: '坡齿厚度', unit: 'cm', part: 'upstreamConnection', region: 'slope' },
-      { key: '上游连接段坡齿宽度', label: '坡齿宽度', unit: 'cm', part: 'upstreamConnection', region: 'slope' },
       { key: '上游连接段坡面高度', label: '坡面高度', unit: 'cm', readonly: true },
       { key: '上游连接段坡面宽度', label: '坡面宽度', unit: 'cm', readonly: true },
       { key: '上游连接段渠底板宽', label: '渠底板宽', unit: 'cm', readonly: true, decimals: 2 },
+      { key: '上游连接段坡板厚度', label: '坡板厚度', unit: 'cm', part: 'upstreamConnection', region: 'slope' },
+      { key: '上游连接段坡齿厚度', label: '坡齿厚度', unit: 'cm', part: 'upstreamConnection', region: 'slope' },
+      { key: '上游连接段坡齿宽度', label: '坡齿宽度', unit: 'cm', part: 'upstreamConnection', region: 'slope' },
     ],
   },
   {
     id: 'upstreamTransition',
     title: '上游渐变',
+    subgroups: [
+      { name: '上游渐变中断面参数', endKey: '上游渐变段中断面顶端宽' },
+      { name: '上游渐变上断面参数', endKey: '上游渐变段上断面底宽' },
+      { name: '上游渐变下断面参数', endKey: '上游渐变段下断面坡高' },
+      { name: '上游渐变铺盖参数', endKey: '上游渐变段铺盖齿墙宽' },
+      { name: '上游渐变计算参数', endKey: '上游渐变段中断面铺盖宽' },
+    ],
     fields: [
       { key: '上游渐变段中首断面距离', label: '中首断面距离', unit: 'cm', part: 'upstreamTransition', region: 'length' },
       { key: '上游渐变段中断面底宽', label: '中断面底宽', unit: 'cm', part: 'upstreamTransition', region: 'middle' },
@@ -216,6 +243,12 @@ const rawGroups = [
   {
     id: 'downstreamConnection',
     title: '下游连接',
+    subgroups: [
+      { name: '下游连接底板参数', endKey: '下游连接段底板齿墙宽' },
+      { name: '下游连接坡面构造参数', endKey: '下游连接段坡底外槽宽' },
+      { name: '下游连接计算参数', endKey: '下游连接段渠底板宽' },
+      { name: '下游连接坡板与坡齿参数', endKey: '下游连接段坡齿宽度' },
+    ],
     fields: [
       { key: '下游连接段底板长度', label: '底板长度', unit: 'cm', part: 'downstreamConnection', region: 'floor' },
       { key: '下游连接段底板厚度', label: '底板厚度', unit: 'cm', part: 'downstreamConnection', region: 'floor' },
@@ -225,17 +258,24 @@ const rawGroups = [
       { key: '下游连接段坡底槽宽', label: '坡底槽宽', unit: 'cm', part: 'downstreamConnection', region: 'ditch' },
       { key: '下游连接段坡底槽高', label: '坡底槽高', unit: 'cm', part: 'downstreamConnection', region: 'ditch' },
       { key: '下游连接段坡底外槽宽', label: '坡底外槽宽', unit: 'cm', part: 'downstreamConnection', region: 'ditch' },
-      { key: '下游连接段坡板厚度', label: '坡板厚度', unit: 'cm', part: 'downstreamConnection', region: 'slope' },
-      { key: '下游连接段坡齿厚度', label: '坡齿厚度', unit: 'cm', part: 'downstreamConnection', region: 'slope' },
-      { key: '下游连接段坡齿宽度', label: '坡齿宽度', unit: 'cm', part: 'downstreamConnection', region: 'slope' },
       { key: '下游连接段坡面高度', label: '坡面高度', unit: 'cm', readonly: true },
       { key: '下游连接段坡面宽度', label: '坡面宽度', unit: 'cm', readonly: true },
       { key: '下游连接段渠底板宽', label: '渠底板宽', unit: 'cm', readonly: true, decimals: 2 },
+      { key: '下游连接段坡板厚度', label: '坡板厚度', unit: 'cm', part: 'downstreamConnection', region: 'slope' },
+      { key: '下游连接段坡齿厚度', label: '坡齿厚度', unit: 'cm', part: 'downstreamConnection', region: 'slope' },
+      { key: '下游连接段坡齿宽度', label: '坡齿宽度', unit: 'cm', part: 'downstreamConnection', region: 'slope' },
     ],
   },
   {
     id: 'downstreamTransition',
     title: '下游渐变',
+    subgroups: [
+      { name: '下游渐变中断面参数', endKey: '下游渐变段中断面顶端宽' },
+      { name: '下游渐变上断面参数', endKey: '下游渐变段上断面底宽' },
+      { name: '下游渐变下断面参数', endKey: '下游渐变段下断面坡宽' },
+      { name: '下游渐变铺盖参数', endKey: '下游渐变段铺盖齿墙宽' },
+      { name: '下游渐变计算参数', endKey: '下游渐变段中断面铺盖宽' },
+    ],
     fields: [
       { key: '下游渐变段中末断面距离', label: '中末断面距离', unit: 'cm', part: 'downstreamTransition', region: 'length' },
       { key: '下游渐变段中断面底宽', label: '中断面底宽', unit: 'cm', part: 'downstreamTransition', region: 'middle' },
@@ -272,14 +312,28 @@ const rawGroups = [
   },
 ]
 
-// 在 rawGroup 的每个字段上自动生成 guideRegion   用于 3D 预览中参数与尺寸线的精确高亮联动
-export const groups = rawGroups.map((group) => ({
-  ...group,
-  fields: group.fields.map((field) => ({
-    ...field,
-    guideRegion: (field.unit === 'cm' && field.part) ? `${field.part}.${field.key}` : undefined,
-  })),
-}))
+// 为字段补充分组和高亮元数据   保持 groups.fields 对外仍为扁平数组
+export const groups = rawGroups.map(({ subgroups, ...group }) => {
+  let subgroupIndex = 0
+
+  return {
+    ...group,
+    fields: group.fields.map((field) => {
+      const subgroup = subgroups[subgroupIndex]
+      const result = {
+        ...field,
+        subgroup: subgroup.name,
+        guideRegion: (field.unit === 'cm' && field.part) ? `${field.part}.${field.key}` : undefined,
+      }
+
+      if (field.key === subgroup.endKey) {
+        subgroupIndex += 1
+      }
+
+      return result
+    }),
+  }
+})
 
 // ==================== 派生计算 ====================
 

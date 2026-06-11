@@ -369,13 +369,26 @@ h3 {
   }
 }
 
-.parameter-grid {
+.parameter-groups {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-content: start;
   gap: 12px;
   min-height: 0;
   overflow: auto;
+}
+
+.parameter-subgroup {
+  border: 1px solid #dce4e1;
+  border-radius: 8px;
+  background: #f8faf9;
+  padding: 12px;
+}
+
+.parameter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-content: start;
+  gap: 12px;
 }
 
 .unit-input {
