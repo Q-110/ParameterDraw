@@ -19,7 +19,8 @@ export function buildStilling(context, params, derived) {
     slopeWallHeight,
     upperWallWidth,
     lowerWallWidth,
-    inclinedWallHeight,
+    floorWidth,
+    verticalWallHeight,
     floorThick,
     slopeDrop,
     flatStartZ,
@@ -28,14 +29,16 @@ export function buildStilling(context, params, derived) {
     flatSlopeEndZ,
     toothHeight,
     toothWidth,
+    toothConnectionWidth,
     sillHeight,
     sillWidth,
+    sillBottomWidth,
   } = makeStillingPreviewData(params, derived)
   // 平底段底板
   addBox(
     context,
     'floor',
-    width,
+    floorWidth,
     floorThick,
     flatLength,
     0,
@@ -46,7 +49,7 @@ export function buildStilling(context, params, derived) {
   addBox(
     context,
     'pool',
-    width,
+    floorWidth,
     floorThick * 0.4,
     flatLength,
     0,
@@ -62,28 +65,28 @@ export function buildStilling(context, params, derived) {
     'position',
     new THREE.BufferAttribute(
       new Float32Array([
-        -width / 2,
+        -floorWidth / 2,
         -slopeDrop - floorThick / 2,
         flatEndZ,
-        width / 2,
+        floorWidth / 2,
         -slopeDrop - floorThick / 2,
         flatEndZ,
-        width / 2,
+        floorWidth / 2,
         -floorThick / 2,
         slopeEndZ,
-        -width / 2,
+        -floorWidth / 2,
         -floorThick / 2,
         slopeEndZ,
-        -width / 2,
+        -floorWidth / 2,
         -slopeDrop + floorThick / 2,
         flatEndZ,
-        width / 2,
+        floorWidth / 2,
         -slopeDrop + floorThick / 2,
         flatEndZ,
-        width / 2,
+        floorWidth / 2,
         floorThick / 2,
         slopeEndZ,
-        -width / 2,
+        -floorWidth / 2,
         floorThick / 2,
         slopeEndZ,
       ]),
@@ -104,11 +107,11 @@ export function buildStilling(context, params, derived) {
     7,
     6, // 顶面   法线朝 +Y
     0,
+    5,
     1,
-    5,
     0,
-    5,
-    4, // 前面   法线朝 +Z（不变）
+    4,
+    5, // 消力池端面   法线朝 -Z
     1,
     5,
     6,
@@ -116,11 +119,11 @@ export function buildStilling(context, params, derived) {
     6,
     2, // 右面   法线朝 +X
     2,
+    7,
     3,
-    7,
     2,
-    7,
-    6, // 后面   法线朝 -Z（不变）
+    6,
+    7, // 坡顶端面   法线朝 +Z
     0,
     3,
     7,
@@ -137,7 +140,7 @@ export function buildStilling(context, params, derived) {
     addBox(
       context,
       'slope',
-      width,
+      floorWidth,
       floorThick,
       flatSlopeLength,
       0,
@@ -152,30 +155,45 @@ export function buildStilling(context, params, derived) {
           {
             bottomY: floorThick / 2,
             height: slopeWallHeight,
+            outerVerticalHeight: 0,
             z: flatSlopeEndZ,
           },
-          { bottomY: floorThick / 2, height: slopeWallHeight, z: slopeEndZ },
+          {
+            bottomY: floorThick / 2,
+            height: slopeWallHeight,
+            outerVerticalHeight: 0,
+            z: slopeEndZ,
+          },
           {
             bottomY: -slopeDrop + floorThick / 2,
             height: wallHeight,
+            outerVerticalHeight: verticalWallHeight,
             z: flatEndZ,
           },
           {
             bottomY: -slopeDrop + floorThick / 2,
             height: wallHeight,
+            outerVerticalHeight: verticalWallHeight,
             z: flatStartZ,
           },
         ]
       : [
-          { bottomY: floorThick / 2, height: slopeWallHeight, z: slopeEndZ },
+          {
+            bottomY: floorThick / 2,
+            height: slopeWallHeight,
+            outerVerticalHeight: 0,
+            z: slopeEndZ,
+          },
           {
             bottomY: -slopeDrop + floorThick / 2,
             height: wallHeight,
+            outerVerticalHeight: verticalWallHeight,
             z: flatEndZ,
           },
           {
             bottomY: -slopeDrop + floorThick / 2,
             height: wallHeight,
+            outerVerticalHeight: verticalWallHeight,
             z: flatStartZ,
           },
         ]
@@ -186,7 +204,7 @@ export function buildStilling(context, params, derived) {
         const outerBottomX = side * (width / 2 + lowerWallWidth)
         const outerUpperX = side * (width / 2 + upperWallWidth)
         const topY = section.bottomY + section.height
-        const inclinedTopY = section.bottomY + inclinedWallHeight
+        const inclinedBottomY = section.bottomY + section.outerVerticalHeight
         // 每个断面按逆时针排列   保证闭合多面体各表面法向一致
         return side === 1
           ? [
@@ -196,9 +214,9 @@ export function buildStilling(context, params, derived) {
               outerBottomX,
               section.bottomY,
               section.z, // 外侧墙脚
-              outerUpperX,
-              inclinedTopY,
-              section.z, // 外侧折点
+              outerBottomX,
+              inclinedBottomY,
+              section.z, // 外侧竖直段顶点
               outerUpperX,
               topY,
               section.z, // 外侧墙顶
@@ -216,8 +234,8 @@ export function buildStilling(context, params, derived) {
               outerUpperX,
               topY,
               section.z,
-              outerUpperX,
-              inclinedTopY,
+              outerBottomX,
+              inclinedBottomY,
               section.z,
               outerBottomX,
               section.bottomY,
@@ -230,28 +248,28 @@ export function buildStilling(context, params, derived) {
             // 第 0 个断面   坡顶平直段起点
             W,  B0, Z0,   // 0   内侧墙脚
             LB, B0, Z0,   // 1   外侧墙脚
-            UB, F0, Z0,   // 2   外侧折点
+            LB, F0, Z0,   // 2   外侧竖直段顶点
             UB, T0, Z0,   // 3   外侧墙顶
             W,  T0, Z0,   // 4   内侧墙顶
     
             // 第 1 个断面   平直段终点及陡坡起点
             W,  B1, Z1,   // 5
             LB, B1, Z1,   // 6
-            UB, F1, Z1,   // 7
+            LB, F1, Z1,   // 7
             UB, T1, Z1,   // 8
             W,  T1, Z1,   // 9
     
             // 第 2 个断面   陡坡终点及消力池起点
             W,  B2, Z2,   // 10
             LB, B2, Z2,   // 11
-            UB, F2, Z2,   // 12
+            LB, F2, Z2,   // 12
             UB, T2, Z2,   // 13
             W,  T2, Z2,   // 14
     
             // 第 3 个断面   消力池终点
             W,  B3, Z3,   // 15
             LB, B3, Z3,   // 16
-            UB, F3, Z3,   // 17
+            LB, F3, Z3,   // 17
             UB, T3, Z3,   // 18
             W,  T3, Z3,   // 19
           ])
@@ -350,29 +368,70 @@ export function buildStilling(context, params, derived) {
     const geometry = new THREE.BufferGeometry()
     geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3))
     geometry.setIndex(indices)
-    geometry.computeVertexNormals()
-    addGeometry(context, 'wall', geometry)
+    const wallNonIndexed = geometry.toNonIndexed()
+    wallNonIndexed.computeVertexNormals()
+    addGeometry(context, 'wall', wallNonIndexed)
   }
-  // 消力坎
-  addBox(
-    context,
-    'baffle',
-    width,
-    sillHeight,
-    sillWidth,
-    0,
-    -slopeDrop + floorThick / 2 + sillHeight / 2,
-    flatStartZ + sillWidth / 2,
+  // 消力坎   IPT 固定使用 135° 斜面
+  const sillBottomY = -slopeDrop + floorThick / 2
+  const sillTopY = sillBottomY + sillHeight
+  const sillGeometry = new THREE.BufferGeometry()
+  sillGeometry.setAttribute(
+    'position',
+    new THREE.BufferAttribute(
+      new Float32Array([
+        -width / 2, sillBottomY, flatStartZ,
+        -width / 2, sillBottomY, flatStartZ + sillBottomWidth,
+        -width / 2, sillTopY, flatStartZ + sillWidth,
+        -width / 2, sillTopY, flatStartZ,
+        width / 2, sillBottomY, flatStartZ,
+        width / 2, sillBottomY, flatStartZ + sillBottomWidth,
+        width / 2, sillTopY, flatStartZ + sillWidth,
+        width / 2, sillTopY, flatStartZ,
+      ]),
+      3,
+    ),
   )
-  // 齿墙
-  addBox(
-    context,
-    'tooth',
-    width,
-    toothHeight,
-    toothWidth,
-    0,
-    -slopeDrop - floorThick / 2 - toothHeight / 2,
-    flatStartZ + toothWidth / 2,
+  sillGeometry.setIndex([
+    0, 1, 2, 0, 2, 3,
+    4, 6, 5, 4, 7, 6,
+    0, 5, 1, 0, 4, 5,
+    1, 6, 2, 1, 5, 6,
+    2, 7, 3, 2, 6, 7,
+    3, 4, 0, 3, 7, 4,
+  ])
+  const sillNonIndexed = sillGeometry.toNonIndexed()
+  sillNonIndexed.computeVertexNormals()
+  addGeometry(context, 'baffle', sillNonIndexed)
+  // 齿墙   IPT 固定使用 135° 斜面并贯穿底板总宽
+  const toothTopY = -slopeDrop - floorThick / 2
+  const toothBottomY = toothTopY - toothHeight
+  const toothGeometry = new THREE.BufferGeometry()
+  toothGeometry.setAttribute(
+    'position',
+    new THREE.BufferAttribute(
+      new Float32Array([
+        -floorWidth / 2, toothTopY, flatStartZ,
+        -floorWidth / 2, toothTopY, flatStartZ + toothConnectionWidth,
+        -floorWidth / 2, toothBottomY, flatStartZ + toothWidth,
+        -floorWidth / 2, toothBottomY, flatStartZ,
+        floorWidth / 2, toothTopY, flatStartZ,
+        floorWidth / 2, toothTopY, flatStartZ + toothConnectionWidth,
+        floorWidth / 2, toothBottomY, flatStartZ + toothWidth,
+        floorWidth / 2, toothBottomY, flatStartZ,
+      ]),
+      3,
+    ),
   )
+  toothGeometry.setIndex([
+    0, 2, 1, 0, 3, 2,
+    4, 5, 6, 4, 6, 7,
+    0, 5, 4, 0, 1, 5,
+    1, 6, 5, 1, 2, 6,
+    2, 7, 6, 2, 3, 7,
+    3, 4, 7, 3, 0, 4,
+  ])
+  const toothNonIndexed = toothGeometry.toNonIndexed()
+  toothNonIndexed.computeVertexNormals()
+  addGeometry(context, 'tooth', toothNonIndexed)
 }

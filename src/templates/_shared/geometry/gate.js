@@ -244,8 +244,9 @@ export function buildGate(context, params, derived) {
     new THREE.BufferAttribute(upstreamToothVertices, 3),
   )
   upstreamToothGeometry.setIndex(toothIndices)
-  upstreamToothGeometry.computeVertexNormals()
-  addGeometry(context, 'tooth', upstreamToothGeometry)
+  const upstreamToothNonIndexed = upstreamToothGeometry.toNonIndexed()
+  upstreamToothNonIndexed.computeVertexNormals()
+  addGeometry(context, 'tooth', upstreamToothNonIndexed)
 
   // 下游齿墙   与上游齿墙镜像布置
   const downstreamToothVertices = new Float32Array([
@@ -271,6 +272,7 @@ export function buildGate(context, params, derived) {
     2, 7, 3, 2, 6, 7,
     3, 4, 0, 3, 7, 4,
   ])
-  downstreamToothGeometry.computeVertexNormals()
-  addGeometry(context, 'tooth', downstreamToothGeometry)
+  const downstreamToothNonIndexed = downstreamToothGeometry.toNonIndexed()
+  downstreamToothNonIndexed.computeVertexNormals()
+  addGeometry(context, 'tooth', downstreamToothNonIndexed)
 }

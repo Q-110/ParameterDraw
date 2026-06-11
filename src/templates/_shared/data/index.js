@@ -161,6 +161,13 @@ export function makeStillingPreviewData(params, derived) {
   const flatLength = cm(params.消力池长度)
   const slopeLength = cm(params.消力池陡坡段长度)
   const flatSlopeLength = cm(params.消力池陡坡段平直段长度)
+  const wallHeight = cm(params.消力池墙高)
+  const inclinedWallHeight = cm(params.消力池斜墙段高度)
+  const lowerWallWidth = cm(params.消力池陡坡段下部墙宽)
+  const toothHeight = cm(params.消力池齿墙高度)
+  const toothWidth = cm(params.消力池齿墙底宽)
+  const sillHeight = cm(params.消力坎高)
+  const sillWidth = cm(params.消力坎顶宽)
   const length = flatLength + slopeLength + flatSlopeLength
   const flatStartZ = -length / 2
   const flatEndZ = flatStartZ + flatLength
@@ -172,21 +179,25 @@ export function makeStillingPreviewData(params, derived) {
     slopeLength,
     flatSlopeLength,
     length,
-    wallHeight: cm(params.消力池墙高),
+    wallHeight,
     slopeWallHeight: cm(derived.消力池陡坡段墙高),
     upperWallWidth: cm(params.消力池陡坡段上部墙宽),
-    lowerWallWidth: cm(params.消力池陡坡段下部墙宽),
-    inclinedWallHeight: cm(params.消力池斜墙段高度),
+    lowerWallWidth,
+    inclinedWallHeight,
+    floorWidth: width + lowerWallWidth * 2,
+    verticalWallHeight: wallHeight - inclinedWallHeight,
     floorThick: cm(params.消力池底板厚度),
     slopeDrop: cm(params.消力池陡坡段高差),
     flatStartZ,
     flatEndZ,
     slopeEndZ,
     flatSlopeEndZ: length / 2,
-    toothHeight: cm(params.消力池齿墙高度),
-    toothWidth: cm(params.消力池齿墙底宽),
-    sillHeight: cm(params.消力坎高),
-    sillWidth: cm(params.消力坎顶宽),
+    toothHeight,
+    toothWidth,
+    toothConnectionWidth: toothWidth + toothHeight,
+    sillHeight,
+    sillWidth,
+    sillBottomWidth: sillWidth + sillHeight,
   }
 }
 
