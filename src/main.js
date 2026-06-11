@@ -9,6 +9,7 @@ if (!window.sluice) {
     saveScheme: async () => null,
     saveSchemeAs: async () => null,
     selectOutputDirectory: async () => null,
+    openOutputDirectory: async () => '',
     runDrawing: async () => ({
       success: false,
       outputDir: '',
@@ -16,6 +17,7 @@ if (!window.sluice) {
       logs: [],
     }),
     onDrawingLog: () => () => {},
+    onDrawingProgress: () => () => {},
   }
 }
 

@@ -116,7 +116,7 @@ h3 {
 }
 
 .sidebar {
-  grid-template-rows: minmax(260px, 0.42fr) minmax(420px, 1fr);
+  grid-template-rows: minmax(320px, 0.48fr) minmax(360px, 1fr);
   min-height: 0;
   overflow: hidden;
 }
@@ -245,30 +245,6 @@ h3 {
   }
 }
 
-.run-state {
-  border-radius: 999px;
-  padding: 4px 8px;
-  font-size: 12px;
-  white-space: nowrap;
-  background: #edf1f0;
-  color: #53615e;
-
-  &.running {
-    background: #fff4d9;
-    color: #7b5700;
-  }
-
-  &.success {
-    background: #e5f4ea;
-    color: #1e6b3e;
-  }
-
-  &.failed {
-    background: #fde8e3;
-    color: #9a321e;
-  }
-}
-
 .button-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -284,6 +260,82 @@ h3 {
   &:hover:not(:disabled) {
     background: #185a56;
     border-color: #185a56;
+  }
+}
+
+.drawing-progress {
+  display: grid;
+  gap: 7px;
+}
+
+.drawing-progress-text {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  color: #53615e;
+  font-size: 12px;
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    flex: none;
+    color: #1f6b67;
+  }
+}
+
+.drawing-progress-track {
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e5ebe9;
+}
+
+.drawing-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: #2f817b;
+  transition: width 300ms ease;
+}
+
+.drawing-progress.running .drawing-progress-fill {
+  background-image: repeating-linear-gradient(
+    120deg,
+    #2f817b 0,
+    #2f817b 9px,
+    #48a099 9px,
+    #48a099 18px
+  );
+  background-size: 36px 36px;
+  animation: drawing-progress-moving 900ms linear infinite;
+}
+
+.drawing-progress.success .drawing-progress-fill {
+  background: #2f8652;
+}
+
+.drawing-progress.failed {
+  .drawing-progress-text strong {
+    color: #a23b27;
+  }
+
+  .drawing-progress-fill {
+    background: #c4513b;
+  }
+}
+
+@keyframes drawing-progress-moving {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 36px 0;
   }
 }
 

@@ -23,6 +23,10 @@ export function useSchemeWorkspace() {
   const activeGroupId = ref(defaultTemplate.groups[0].id)
   const focused = ref(null)
   const logs = ref([])
+  const drawingProgress = reactive({
+    percent: 0,
+    stage: '',
+  })
   // 运行状态
   // idle      空闲       初始值  清空日志  加载方案后
   // running   出图中     调用 window.sluice.runDrawing() 之前
@@ -36,9 +40,14 @@ export function useSchemeWorkspace() {
   const removeLogListener = window.sluice.onDrawingLog((text) => {
     logs.value.push(text.trimEnd())
   })
+  const removeProgressListener = window.sluice.onDrawingProgress((progress) => {
+    drawingProgress.percent = progress.percent
+    drawingProgress.stage = progress.stage
+  })
 
   onBeforeUnmount(() => {
     removeLogListener()
+    removeProgressListener()
   })
 
   /**
@@ -88,6 +97,8 @@ export function useSchemeWorkspace() {
     activeGroupId.value = defaultTemplate.groups[0].id
     focused.value = null
     logs.value = []
+    drawingProgress.percent = 0
+    drawingProgress.stage = ''
     runState.value = 'idle'
   }
 
@@ -136,10 +147,13 @@ export function useSchemeWorkspace() {
    */
   async function runDrawing() {
     logs.value = []
+    drawingProgress.percent = 0
+    drawingProgress.stage = '正在启动出图程序'
 
     // 前端校验参数
     if (validationErrors.value.length > 0) {
       runState.value = 'failed'
+      drawingProgress.stage = '参数校验未通过'
       logs.value.push('参数校验未通过  已停止出图')
       validationErrors.value.forEach((error) => logs.value.push(error))
       return
@@ -153,6 +167,18 @@ export function useSchemeWorkspace() {
 
     // 更新状态
     runState.value = result.success ? 'success' : 'failed'
+    if (result.success) {
+      drawingProgress.percent = 100
+      drawingProgress.stage = '出图完成'
+      const openDirectoryError = await window.sluice.openOutputDirectory(
+        result.outputDir,
+      )
+      if (openDirectoryError) {
+        logs.value.push(`打开成果目录失败  ${openDirectoryError}`)
+      }
+    } else {
+      drawingProgress.stage = `出图失败  停止于${drawingProgress.stage}`
+    }
 
     // 主进程启动前失败时没有实时日志   此处补充返回日志
     if (logs.value.length === 0 && result.logs.length > 0) {
@@ -183,6 +209,8 @@ export function useSchemeWorkspace() {
     activeGroupId.value = template.groups[0].id
     focused.value = null
     logs.value = []
+    drawingProgress.percent = 0
+    drawingProgress.stage = ''
     runState.value = 'idle'
   }
 
@@ -235,6 +263,8 @@ export function useSchemeWorkspace() {
     activeGroupId.value = nextTemplate.groups[0].id
     focused.value = null
     logs.value = []
+    drawingProgress.percent = 0
+    drawingProgress.stage = ''
     runState.value = 'idle'
   }
 
@@ -267,6 +297,7 @@ export function useSchemeWorkspace() {
     clearFieldFocus,
     currentTemplate,
     derived,
+    drawingProgress,
     focused,
     logs,
     newScheme,

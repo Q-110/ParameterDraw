@@ -4,6 +4,7 @@
       <SchemePanel
         :scheme-name="schemeName"
         :run-state="runState"
+        :drawing-progress="drawingProgress"
         :validation-error-count="validationErrors.length"
         :template-id="templateId"
         :templates="templateDefinitions"
@@ -92,6 +93,7 @@ const {
   clearFieldFocus,
   currentTemplate,
   derived,
+  drawingProgress,
   focused,
   logs,
   newScheme,

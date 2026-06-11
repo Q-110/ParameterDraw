@@ -1,10 +1,11 @@
-const { app, BrowserWindow, Menu, dialog, ipcMain } = require('electron')
+const { app, BrowserWindow, Menu, dialog, ipcMain, shell } = require('electron')
 const { spawn } = require('node:child_process')
 const fs = require('node:fs')
 const path = require('node:path')
 const { TextDecoder } = require('node:util')
 
 const isDev = !app.isPackaged
+const drawingProgressPrefix = '@@DRAWING_PROGRESS@@'
 let drawingRunning = false
 const hasSingleInstanceLock = app.requestSingleInstanceLock()
 
@@ -187,6 +188,14 @@ ipcMain.handle('output:selectDirectory', async () => {
 
 
 /**
+ * 使用系统文件管理器打开出图成果目录
+ */
+ipcMain.handle('output:openDirectory', async (_event, directoryPath) => {
+  return shell.openPath(directoryPath)
+})
+
+
+/**
  * 将当前方案写入临时 JSON  在调用 Python 薄封装触发 Inventor 出图
  */
 ipcMain.handle('drawing:run', async (event, scheme) => {
@@ -263,6 +272,29 @@ ipcMain.handle('drawing:run', async (event, scheme) => {
     const outputEncoding = isDev ? 'utf-8' : 'gbk'
     const stdoutDecoder = new TextDecoder(outputEncoding)
     const stderrDecoder = new TextDecoder(outputEncoding)
+    let stdoutLineBuffer = ''
+
+    /**
+     * 识别 Python 结构化进度  普通输出继续转发到日志通道
+     * @param {string} line
+     */
+    const forwardStdoutLine = (line) => {
+      const content = line.replace(/\r?\n$/, '')
+      if (content.startsWith(drawingProgressPrefix)) {
+        try {
+          const progress = JSON.parse(content.slice(drawingProgressPrefix.length))
+          if (typeof progress.percent === 'number' && typeof progress.stage === 'string') {
+            event.sender.send('drawing:progress', progress)
+            return
+          }
+        } catch {
+          // 协议解析失败时作为普通日志保留
+        }
+      }
+
+      logs.push(line)
+      event.sender.send('drawing:log', line)
+    }
 
     try {
       fs.mkdirSync(logDir, { recursive: true })
@@ -322,12 +354,18 @@ ipcMain.handle('drawing:run', async (event, scheme) => {
     })
 
     child.stdout.on('data', (chunk) => {
-      // 实时发送 标准输出日志 给渲染进程
       const text = stdoutDecoder.decode(chunk, { stream: true })
-      logs.push(text)
-      event.sender.send('drawing:log', text)
       if (!logStream.destroyed) {
         logStream.write(text)
+      }
+
+      // 按完整行解析进度协议  避免多字节或分块输出截断 JSON
+      stdoutLineBuffer += text
+      let newlineIndex = stdoutLineBuffer.indexOf('\n')
+      while (newlineIndex >= 0) {
+        forwardStdoutLine(stdoutLineBuffer.slice(0, newlineIndex + 1))
+        stdoutLineBuffer = stdoutLineBuffer.slice(newlineIndex + 1)
+        newlineIndex = stdoutLineBuffer.indexOf('\n')
       }
     })
 
@@ -347,11 +385,14 @@ ipcMain.handle('drawing:run', async (event, scheme) => {
       const stdoutTail = stdoutDecoder.decode()
       const stderrTail = stderrDecoder.decode()
       if (stdoutTail) {
-        logs.push(stdoutTail)
-        event.sender.send('drawing:log', stdoutTail)
         if (!logStream.destroyed) {
           logStream.write(stdoutTail)
         }
+        stdoutLineBuffer += stdoutTail
+      }
+      if (stdoutLineBuffer) {
+        forwardStdoutLine(stdoutLineBuffer)
+        stdoutLineBuffer = ''
       }
       if (stderrTail) {
         logs.push(stderrTail)

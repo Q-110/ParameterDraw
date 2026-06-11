@@ -10,9 +10,6 @@
           @input="updateSchemeName"
         />
       </div>
-      <span :class="['run-state', runState]">
-        {{ runStateText }}
-      </span>
     </div>
     <label class="template-field">
       <span>模板</span>
@@ -46,15 +43,36 @@
     >
       {{ runState === 'running' ? '正在出图' : '执行出图' }}
     </button>
+    <div
+      v-if="runState !== 'idle'"
+      :class="['drawing-progress', runState]"
+    >
+      <div class="drawing-progress-text">
+        <span>{{ drawingProgress.stage }}</span>
+        <strong>{{ drawingProgress.percent }}%</strong>
+      </div>
+      <div
+        class="drawing-progress-track"
+        role="progressbar"
+        aria-label="出图进度"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        :aria-valuenow="drawingProgress.percent"
+      >
+        <div
+          class="drawing-progress-fill"
+          :style="{ width: `${drawingProgress.percent}%` }"
+        />
+      </div>
+    </div>
   </section>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-
-const props = defineProps([
+defineProps([
   'schemeName',
   'runState',
+  'drawingProgress',
   'validationErrorCount',
   'templateId',
   'templates',
@@ -70,21 +88,6 @@ const emit = defineEmits([
   'run',
 ])
 
-// 运行状态
-const runStateText = computed(() => {
-  if (props.runState === 'running') {
-    return '出图中'
-  }
-  if (props.runState === 'success') {
-    return '成功'
-  }
-  if (props.runState === 'failed') {
-    return '失败'
-  }
-  return '待出图'
-})
-
-// 方案名称
 /**
  * 上报方案名称变化
  */
