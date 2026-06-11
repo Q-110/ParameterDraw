@@ -22,7 +22,6 @@ export function useSchemeWorkspace() {
   const templateParameterCache = new Map()
   const activeGroupId = ref(defaultTemplate.groups[0].id)
   const focused = ref(null)
-  const logs = ref([])
   const drawingProgress = reactive({
     percent: 0,
     stage: '',
@@ -34,19 +33,12 @@ export function useSchemeWorkspace() {
   // failed    出图失败   校验未通过或 Python 进程退出码非 0
   const runState = ref('idle')
 
-  /**
-   * 实时接收主进程转发的 Python 日志
-   */
-  const removeLogListener = window.sluice.onDrawingLog((text) => {
-    logs.value.push(text.trimEnd())
-  })
   const removeProgressListener = window.sluice.onDrawingProgress((progress) => {
     drawingProgress.percent = progress.percent
     drawingProgress.stage = progress.stage
   })
 
   onBeforeUnmount(() => {
-    removeLogListener()
     removeProgressListener()
   })
 
@@ -96,7 +88,6 @@ export function useSchemeWorkspace() {
     Object.assign(params, defaultTemplate.defaults)
     activeGroupId.value = defaultTemplate.groups[0].id
     focused.value = null
-    logs.value = []
     drawingProgress.percent = 0
     drawingProgress.stage = ''
     runState.value = 'idle'
@@ -146,7 +137,6 @@ export function useSchemeWorkspace() {
    * 出图前先执行前端公式一致性校验   避免明显错误参数进入 Inventor 流程
    */
   async function runDrawing() {
-    logs.value = []
     drawingProgress.percent = 0
     drawingProgress.stage = '正在启动出图程序'
 
@@ -154,8 +144,6 @@ export function useSchemeWorkspace() {
     if (validationErrors.value.length > 0) {
       runState.value = 'failed'
       drawingProgress.stage = '参数校验未通过'
-      logs.value.push('参数校验未通过  已停止出图')
-      validationErrors.value.forEach((error) => logs.value.push(error))
       return
     }
 
@@ -170,23 +158,10 @@ export function useSchemeWorkspace() {
     if (result.success) {
       drawingProgress.percent = 100
       drawingProgress.stage = '出图完成'
-      const openDirectoryError = await window.sluice.openOutputDirectory(
-        result.outputDir,
-      )
-      if (openDirectoryError) {
-        logs.value.push(`打开成果目录失败  ${openDirectoryError}`)
-      }
+      await window.sluice.openOutputDirectory(result.outputDir)
     } else {
       drawingProgress.stage = `出图失败  停止于${drawingProgress.stage}`
     }
-
-    // 主进程启动前失败时没有实时日志   此处补充返回日志
-    if (logs.value.length === 0 && result.logs.length > 0) {
-      logs.value.push(...result.logs.map((line) => line.trimEnd()))
-    }
-    logs.value.push(
-      result.success ? `出图完成  ${result.outputDir}` : '出图失败',
-    )
   }
 
   /**
@@ -208,7 +183,6 @@ export function useSchemeWorkspace() {
     templateParameterCache.set(template.id, { ...params })
     activeGroupId.value = template.groups[0].id
     focused.value = null
-    logs.value = []
     drawingProgress.percent = 0
     drawingProgress.stage = ''
     runState.value = 'idle'
@@ -262,7 +236,6 @@ export function useSchemeWorkspace() {
     templateId.value = nextTemplate.id
     activeGroupId.value = nextTemplate.groups[0].id
     focused.value = null
-    logs.value = []
     drawingProgress.percent = 0
     drawingProgress.stage = ''
     runState.value = 'idle'
@@ -299,7 +272,6 @@ export function useSchemeWorkspace() {
     derived,
     drawingProgress,
     focused,
-    logs,
     newScheme,
     openScheme,
     output,

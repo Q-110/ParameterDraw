@@ -95,7 +95,6 @@ const {
   derived,
   drawingProgress,
   focused,
-  logs,
   newScheme,
   openScheme,
   output,

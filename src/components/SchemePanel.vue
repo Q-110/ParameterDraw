@@ -41,7 +41,7 @@
       :disabled="runState === 'running' || validationErrorCount > 0"
       @click="emit('run')"
     >
-      {{ runState === 'running' ? '正在出图' : '执行出图' }}
+      {{ runState === 'running' ? '正在执行' : '开始执行' }}
     </button>
     <div
       v-if="runState !== 'idle'"

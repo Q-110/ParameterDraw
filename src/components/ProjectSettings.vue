@@ -1,6 +1,6 @@
 <template>
   <section class="panel project-panel">
-    <h2>项目属性</h2>
+    <h2>图纸属性</h2>
     <div class="compact-form">
       <label>
         <span>工程名称</span>

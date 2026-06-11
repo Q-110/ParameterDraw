@@ -14,9 +14,7 @@ if (!window.sluice) {
       success: false,
       outputDir: '',
       logPath: '',
-      logs: [],
     }),
-    onDrawingLog: () => () => {},
     onDrawingProgress: () => () => {},
   }
 }
