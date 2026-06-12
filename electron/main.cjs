@@ -200,7 +200,8 @@ ipcMain.handle('output:openDirectory', async (_event, directoryPath) => {
  */
 ipcMain.handle('drawing:run', async (event, scheme) => {
   const codeRoot = getCodeRoot()
-  const templateRoot = 'F:\\webSpace\\ParameterDraw'
+  const templateRoot = isDev ? '' : path.join(process.resourcesPath, 'templates')
+  const hasBundledTemplates = templateRoot && fs.existsSync(templateRoot)
   const tempDir = path.join(app.getPath('userData'), 'schemes')
   fs.mkdirSync(tempDir, { recursive: true })
 
@@ -214,27 +215,6 @@ ipcMain.handle('drawing:run', async (event, scheme) => {
         outputDir: scheme.output.savepath,
         logPath: '',
         logs: ['已有出图任务正在执行'],
-      })
-      return
-    }
-
-    if (!fs.existsSync(templateRoot)) {
-      resolve({
-        success: false,
-        outputDir: scheme.output.savepath,
-        logPath: '',
-        logs: ['模板根目录不存在：' + templateRoot],
-      })
-      return
-    }
-
-    const templatePath = path.join(templateRoot, scheme.templateId)
-    if (!fs.existsSync(templatePath)) {
-      resolve({
-        success: false,
-        outputDir: scheme.output.savepath,
-        logPath: '',
-        logs: [`服务器模板目录不存在：${templatePath}`],
       })
       return
     }
@@ -342,14 +322,18 @@ ipcMain.handle('drawing:run', async (event, scheme) => {
     // 通过运行锁和目录校验后再写入   避免重复调用覆盖当前任务方案
     fs.writeFileSync(schemePath, JSON.stringify(scheme, null, 2), 'utf-8')
     drawingRunning = true
+    const backendEnv = {
+      ...process.env,
+      PYTHONIOENCODING: 'utf-8',
+      SLUICE_CODE_ROOT: codeRoot,
+    }
+    delete backendEnv.PARAMETER_DRAW_TEMPLATE_ROOT
+    if (hasBundledTemplates) {
+      backendEnv.PARAMETER_DRAW_TEMPLATE_ROOT = templateRoot
+    }
     child = spawn(backendCommand.executable, backendCommand.args, {
       cwd: codeRoot,
-      env: {
-        ...process.env,
-        PYTHONIOENCODING: 'utf-8',
-        SLUICE_CODE_ROOT: codeRoot,
-        PARAMETER_DRAW_TEMPLATE_ROOT: templateRoot,
-      },
+      env: backendEnv,
       windowsHide: true,
     })
 

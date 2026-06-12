@@ -8,56 +8,10 @@
     "dev": "concurrently --kill-others-on-fail \"vite --host 127.0.0.1 --strictPort\" \"wait-on http://127.0.0.1:5173 && electron .\"",
     "build": "vite build",
     "backend:build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-python-backend.ps1",
-    "dist": "pnpm backend:build && pnpm build && electron-builder --win nsis portable",
-    "dist:portable": "pnpm backend:build && pnpm build && electron-builder --win portable",
-    "dist:installer": "pnpm backend:build && pnpm build && electron-builder --win nsis"
-  },
-  "build": {
-    "appId": "com.parameterdraw.desktop",
-    "productName": "ParameterDraw",
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "dist/**/*",
-      "electron/**/*",
-      "build/icon.ico",
-      "package.json"
-    ],
-    "extraResources": [
-      {
-        "from": "../code",
-        "to": "code",
-        "filter": [
-          "**/*",
-          "!**/.git/**",
-          "!**/.idea/**",
-          "!**/.opencode/**",
-          "!**/.venv/**",
-          "!**/__pycache__/**",
-          "!**/*.pyc",
-          "!requirements.txt"
-        ]
-      },
-      {
-        "from": "build/python-backend/run_from_json",
-        "to": "backend/run_from_json",
-        "filter": [
-          "**/*"
-        ]
-      }
-    ],
-    "win": {
-      "icon": "build/icon.ico",
-      "target": [
-        "nsis",
-        "portable"
-      ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
-    }
+    "dist": "pnpm backend:build && pnpm build && electron-builder --config electron-builder.config.cjs --win nsis portable",
+    "dist:portable": "pnpm backend:build && pnpm build && electron-builder --config electron-builder.config.cjs --win portable",
+    "dist:installer": "pnpm backend:build && pnpm build && electron-builder --config electron-builder.config.cjs --win nsis",
+    "dist:test": "pnpm backend:build && pnpm build && set PARAMETER_DRAW_INCLUDE_TEMPLATES=true&& electron-builder --config electron-builder.config.cjs --win portable"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
