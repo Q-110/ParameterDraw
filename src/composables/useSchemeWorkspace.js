@@ -1,3 +1,6 @@
+/**
+ * 所有状态、所有操作方法
+ */
 import { computed, onBeforeUnmount, reactive, ref } from 'vue'
 import { defaultOutput, defaultProject } from '../templates/_shared/config'
 import {
@@ -10,29 +13,30 @@ import {
  * 管理方案编辑  模板切换和 Electron 桌面操作
  */
 export function useSchemeWorkspace() {
-  /**
-   * 维护当前方案的基础状态   所有派生值都由这些状态实时计算
-   */
-  const schemeName = ref('默认水闸方案')
-  const schemePath = ref(null)
-  const templateId = ref(defaultTemplate.id)
-  const project = reactive({ ...defaultProject })
-  const output = reactive({ ...defaultOutput })
-  const params = reactive({ ...defaultTemplate.defaults })
-  const templateParameterCache = new Map()
-  const activeGroupId = ref(defaultTemplate.groups[0].id)
-  const focused = ref(null)
+  // 维护当前方案的基础状态   所有派生值都由这些状态实时计算
+  const schemeName = ref('默认水闸方案')                      // 方案显示名称
+  const schemePath = ref(null)                         // 已保存的本地文件路径   null 未保存
+  const templateId = ref(defaultTemplate.id)                  // 当前模板 ID   切换模板时更新
+  const project = reactive({ ...defaultProject })                    // 图纸属性
+  const output = reactive({ ...defaultOutput })                      // 保存路径
+  const params = reactive({ ...defaultTemplate.defaults })          // 所有参数
+  const templateParameterCache = new Map()                                     // 切换模板时暂存上一模板的参数值
+  const activeGroupId = ref(defaultTemplate.groups[0].id)      // 分组标签
+  const focused = ref(null)                             // 当前聚焦字段
   const drawingProgress = reactive({
     percent: 0,
     stage: '',
   })
-  // 运行状态
+  // 出图状态
   // idle      空闲       初始值  清空日志  加载方案后
   // running   出图中     调用 window.sluice.runDrawing() 之前
   // success   出图成功   Python 进程退出码为 0
   // failed    出图失败   校验未通过或 Python 进程退出码非 0
   const runState = ref('idle')
 
+  /**
+   * 吧 Python 后端的执行进度通过 IPC 管道实时同步到 Vue 的响应式状态中
+   */
   const removeProgressListener = window.sluice.onDrawingProgress((progress) => {
     drawingProgress.percent = progress.percent
     drawingProgress.stage = progress.stage

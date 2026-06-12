@@ -13,7 +13,7 @@ contextBridge.exposeInMainWorld('sluice', {
   runDrawing: (scheme) => ipcRenderer.invoke('drawing:run', scheme),
   onDrawingProgress: (callback) => {
     const listener = (_event, progress) => callback(progress)
-    ipcRenderer.on('drawing:progress', listener)
-    return () => ipcRenderer.removeListener('drawing:progress', listener)
+    ipcRenderer.on('drawing:progress', listener)   // 监听主进程发来的事件
+    return () => ipcRenderer.removeListener('drawing:progress', listener)   // 返回清理函数
   },
 })

@@ -260,10 +260,12 @@ ipcMain.handle('drawing:run', async (event, scheme) => {
      */
     const forwardStdoutLine = (line) => {
       const content = line.replace(/\r?\n$/, '')
+      // 以 @@DRAWING_PROGRESS@@ 开头
       if (content.startsWith(drawingProgressPrefix)) {
         try {
           const progress = JSON.parse(content.slice(drawingProgressPrefix.length))
           if (typeof progress.percent === 'number' && typeof progress.stage === 'string') {
+            // 推送给渲染进程      Electron IPC
             event.sender.send('drawing:progress', progress)
             return
           }
@@ -273,6 +275,7 @@ ipcMain.handle('drawing:run', async (event, scheme) => {
       }
 
       logs.push(line)
+      // 非进度行   ->   日志通道
       event.sender.send('drawing:log', line)
     }
 
@@ -337,16 +340,20 @@ ipcMain.handle('drawing:run', async (event, scheme) => {
       windowsHide: true,
     })
 
+    // 监听子进程的 stdout 流
     child.stdout.on('data', (chunk) => {
       const text = stdoutDecoder.decode(chunk, { stream: true })
       if (!logStream.destroyed) {
         logStream.write(text)
       }
 
-      // 按完整行解析进度协议  避免多字节或分块输出截断 JSON
+      // 收到的原始字节   ->   字符串
       stdoutLineBuffer += text
       let newlineIndex = stdoutLineBuffer.indexOf('\n')
+
+      // 按 \n 切分出完整行
       while (newlineIndex >= 0) {
+        // 识别 Python 结构化进度
         forwardStdoutLine(stdoutLineBuffer.slice(0, newlineIndex + 1))
         stdoutLineBuffer = stdoutLineBuffer.slice(newlineIndex + 1)
         newlineIndex = stdoutLineBuffer.indexOf('\n')
