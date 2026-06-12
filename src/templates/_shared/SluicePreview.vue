@@ -10,26 +10,15 @@
       class="preview-card"
     >
       <header>
-        <div class="preview-title">
-          <span>{{ part.title }}</span>
-          <el-tooltip
-            v-if="props.activePartId"
-            content="恢复默认视角"
-            placement="top"
-          >
-            <button
-              class="reset-view-button"
-              type="button"
-              aria-label="恢复默认视角"
-              @click="canvasRef?.resetDefaultView()"
-            >
-              <el-icon><Refresh /></el-icon>
-            </button>
-          </el-tooltip>
-        </div>
-        <strong v-if="props.focus?.part === part.id">{{
-          props.focus.key
-        }}</strong>
+        <span class="preview-title">{{ part.title }}</span>
+        <button
+          v-if="props.activePartId"
+          class="reset-view-button"
+          type="button"
+          @click="canvasRef?.resetDefaultView()"
+        >
+          重置视角
+        </button>
       </header>
       <SluicePreviewCanvas
         :ref="setCanvasRef"
@@ -45,11 +34,6 @@
 </template>
 
 <script setup>
-import { Refresh } from '@element-plus/icons-vue'
-import { ElIcon } from 'element-plus/es/components/icon/index'
-import 'element-plus/es/components/icon/style/css'
-import { ElTooltip } from 'element-plus/es/components/tooltip/index'
-import 'element-plus/es/components/tooltip/style/css'
 import { computed, ref } from 'vue'
 import SluicePreviewCanvas from './SluicePreviewCanvas.vue'
 

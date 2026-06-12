@@ -1,12 +1,16 @@
 <template>
   <section class="panel material-panel">
-    <h2>底板材料与比值</h2>
-    <dl>
-      <template v-for="field in fields" :key="field.key">
-        <dt>{{ field.label }}</dt>
-        <dd>{{ formatValue(derived[field.key], field) }}</dd>
-      </template>
-    </dl>
+    <h2>底板材料</h2>
+    <div class="material-results">
+      <article
+        v-for="field in fields"
+        :key="field.key"
+        class="result-card material-result-card"
+      >
+        <span>{{ field.label }}</span>
+        <strong>{{ formatValue(derived[field.key], field) }}</strong>
+      </article>
+    </div>
   </section>
 </template>
 

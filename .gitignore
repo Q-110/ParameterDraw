@@ -30,3 +30,5 @@ build/python-backend-work
 *.sln
 *.sw?
 /.opencode/
+/build/
+/.mimocode/

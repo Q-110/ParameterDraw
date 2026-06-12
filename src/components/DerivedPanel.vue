@@ -1,16 +1,17 @@
 <template>
   <section class="panel derived-panel">
-    <h2>派生值</h2>
+    <h2>对应高程推算</h2>
     <div class="derived-sections">
-      <div v-for="section in sections" :key="section.id">
-        <h3 v-if="section.title">{{ section.title }}</h3>
-        <dl>
-          <template v-for="field in section.fields" :key="field.key">
-            <dt>{{ field.label }}</dt>
-            <dd>{{ formatValue(derived[field.key], field) }}</dd>
-          </template>
-        </dl>
-      </div>
+      <template v-for="section in sections" :key="section.id">
+        <article
+          v-for="field in section.fields"
+          :key="field.key"
+          class="result-card elevation-result-card"
+        >
+          <span>{{ field.label }}</span>
+          <strong>{{ formatValue(derived[field.key], field) }}</strong>
+        </article>
+      </template>
     </div>
   </section>
 </template>

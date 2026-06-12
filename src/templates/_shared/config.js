@@ -7,7 +7,7 @@ export const sluiceBasicFields = [
   { key: '止水偏移表面', label: '止水偏移表面', unit: 'cm' },
 ]
 
-// ==================== 派生值展示配置 ====================
+// ==================== 高程推算展示配置 ====================
 
 export const sluiceDerivedSections = [
   {
@@ -19,16 +19,16 @@ export const sluiceDerivedSections = [
       { key: '消力池底板高程', label: '消力池底板高程', unit: 'm' },
       { key: '下游底板高程', label: '下游底板高程', unit: 'm' },
       { key: '下游墙顶高程', label: '下游墙顶高程', unit: 'm' },
+      { key: '坡比值', label: '坡比值', decimals: 1 },
+      { key: '渠坡比', label: '渠坡比' },
+      { key: '陡坡比值', label: '陡坡比值', decimals: 1 },
+      { key: '陡坡比', label: '陡坡比' },
     ],
   },
 ]
 
-// 底板材料与比值展示   替换出图日志区域
+// 底板材料展示   替换出图日志区域
 export const sluiceMaterialFields = [
-  { key: '坡比值', label: '坡比值', decimals: 1 },
-  { key: '陡坡比值', label: '陡坡比值', decimals: 1 },
-  { key: '渠坡比', label: '渠坡比' },
-  { key: '陡坡比', label: '陡坡比' },
   { key: '上游连接段底板', label: '上游连接段底板' },
   { key: '上游渐变段底板', label: '上游渐变段底板' },
   { key: '闸室底板', label: '闸室底板' },

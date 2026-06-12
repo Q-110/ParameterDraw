@@ -1,22 +1,22 @@
 <template>
   <main class="app-shell">
-    <aside class="layout-column sidebar">
-      <SchemePanel
-        :scheme-name="schemeName"
-        :run-state="runState"
-        :drawing-progress="drawingProgress"
-        :validation-error-count="validationErrors.length"
-        :template-id="templateId"
-        :templates="templateDefinitions"
-        @update:scheme-name="schemeName = $event"
-        @update:template-id="switchTemplate"
-        @new="newScheme"
-        @open="openScheme"
-        @save="saveScheme"
-        @save-as="saveSchemeAs"
-        @run="runDrawing"
-      />
+    <SchemePanel
+      :scheme-name="schemeName"
+      :run-state="runState"
+      :drawing-progress="drawingProgress"
+      :validation-error-count="validationErrors.length"
+      :template-id="templateId"
+      :templates="templateDefinitions"
+      @update:scheme-name="schemeName = $event"
+      @update:template-id="switchTemplate"
+      @new="newScheme"
+      @open="openScheme"
+      @save="saveScheme"
+      @save-as="saveSchemeAs"
+      @run="runDrawing"
+    />
 
+    <aside class="layout-column sidebar">
       <ProjectSettings
         :project="project"
         :output="output"
@@ -27,12 +27,12 @@
 
     <section class="layout-column center-column">
       <section class="parameter-area">
-      <ParameterForm
-        :groups="currentTemplate.groups"
-        :active-group-id="activeGroupId"
-        :active-group="activeGroup"
-        :params="params"
-        :derived="derived"
+        <ParameterForm
+          :groups="currentTemplate.groups"
+          :active-group-id="activeGroupId"
+          :active-group="activeGroup"
+          :params="params"
+          :derived="derived"
           @update:active-group-id="activeGroupId = $event"
           @update-param="updateParam"
           @focus-field="setFieldFocus"
@@ -42,18 +42,6 @@
         <ValidationPanel
           v-if="validationErrors.length > 0"
           :errors="validationErrors"
-        />
-      </section>
-
-      <section class="center-bottom">
-        <BasicParameterPanel
-          :fields="currentTemplate.basicFields"
-          :params="params"
-          @update-param="updateParam"
-        />
-        <DerivedPanel
-          :sections="currentTemplate.derivedSections"
-          :derived="derived"
         />
       </section>
     </section>
@@ -68,6 +56,18 @@
           :active-part-id="activeGroupId"
         />
       </section>
+    </section>
+
+    <section class="bottom-panels">
+      <BasicParameterPanel
+        :fields="currentTemplate.basicFields"
+        :params="params"
+        @update-param="updateParam"
+      />
+      <DerivedPanel
+        :sections="currentTemplate.derivedSections"
+        :derived="derived"
+      />
       <MaterialPanel
         :fields="currentTemplate.materialFields"
         :derived="derived"

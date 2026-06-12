@@ -1,54 +1,44 @@
 <template>
-  <section class="panel scheme-panel">
-    <div class="title-row">
+  <section class="panel scheme-panel app-toolbar">
+    <div class="toolbar-brand">
+      <img :src="appIconUrl" alt="" />
       <div>
-        <p>方案</p>
+        <strong>ParameterDraw</strong>
+        <span>水闸参数化出图</span>
+      </div>
+    </div>
+
+    <div class="toolbar-fields">
+      <label class="toolbar-field scheme-field">
         <input
           :value="schemeName"
-          class="scheme-name"
           aria-label="方案名称"
           @input="updateSchemeName"
         />
-      </div>
-    </div>
-    <label class="template-field">
-      <span>模板</span>
-      <div class="template-select">
-        <select
-          :value="templateId"
-          :disabled="runState === 'running'"
-          @change="updateTemplate"
-        >
-          <option
-            v-for="template in templates"
-            :key="template.id"
-            :value="template.id"
+      </label>
+      <label class="toolbar-field template-field">
+        <div class="template-select">
+          <select
+            :value="templateId"
+            :disabled="runState === 'running'"
+            aria-label="模板"
+            @change="updateTemplate"
           >
-            {{ template.name }}
-          </option>
-        </select>
-      </div>
-    </label>
-    <div class="button-grid">
-      <button type="button" @click="emit('new')">新建</button>
-      <button type="button" @click="emit('open')">打开</button>
-      <button type="button" @click="emit('save')">保存</button>
-      <button type="button" @click="emit('saveAs')">另存</button>
+            <option
+              v-for="template in templates"
+              :key="template.id"
+              :value="template.id"
+            >
+              {{ template.name }}
+            </option>
+          </select>
+        </div>
+      </label>
     </div>
-    <button
-      type="button"
-      class="primary-action"
-      :disabled="runState === 'running' || validationErrorCount > 0"
-      @click="emit('run')"
-    >
-      {{ runState === 'running' ? '正在执行' : '开始执行' }}
-    </button>
-    <div
-      v-if="runState !== 'idle'"
-      :class="['drawing-progress', runState]"
-    >
+
+    <div :class="['toolbar-status', runState]">
       <div class="drawing-progress-text">
-        <span>{{ drawingProgress.stage }}</span>
+        <span>{{ statusText }}</span>
         <strong>{{ drawingProgress.percent }}%</strong>
       </div>
       <div
@@ -65,11 +55,29 @@
         />
       </div>
     </div>
+
+    <div class="toolbar-actions">
+      <button type="button" @click="emit('new')">新建</button>
+      <button type="button" @click="emit('open')">打开</button>
+      <button type="button" @click="emit('save')">保存</button>
+      <button type="button" @click="emit('saveAs')">另存为</button>
+      <button
+        type="button"
+        class="primary-action"
+        :disabled="runState === 'running' || validationErrorCount > 0"
+        @click="emit('run')"
+      >
+        {{ runState === 'running' ? '正在执行' : '开始执行' }}
+      </button>
+    </div>
   </section>
 </template>
 
 <script setup>
-defineProps([
+import { computed } from 'vue'
+import appIconUrl from '../../build/icon.ico?url'
+
+const props = defineProps([
   'schemeName',
   'runState',
   'drawingProgress',
@@ -87,6 +95,10 @@ const emit = defineEmits([
   'saveAs',
   'run',
 ])
+
+const statusText = computed(() =>
+  props.runState === 'idle' ? '待执行' : props.drawingProgress.stage,
+)
 
 /**
  * 上报方案名称变化
