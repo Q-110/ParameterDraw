@@ -9,6 +9,47 @@ const drawingProgressPrefix = '@@DRAWING_PROGRESS@@'
 let drawingRunning = false
 const hasSingleInstanceLock = app.requestSingleInstanceLock()
 
+// 使用 Powershell 调用 Windows Forms 的原生对话框替代 Electron 对话框
+const windowsDialogScript = `
+Add-Type -AssemblyName System.Windows.Forms
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+$owner = New-Object System.Windows.Forms.Form
+$owner.TopMost = $true
+$owner.ShowInTaskbar = $false
+$owner.StartPosition = 'Manual'
+$owner.Location = New-Object System.Drawing.Point(-32000, -32000)
+$owner.Size = New-Object System.Drawing.Size(1, 1)
+$owner.Show()
+
+if ($env:PARAMETER_DRAW_DIALOG_TYPE -eq 'folder') {
+  $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+  $dialog.Description = $env:PARAMETER_DRAW_DIALOG_TITLE
+} elseif ($env:PARAMETER_DRAW_DIALOG_TYPE -eq 'save') {
+  $dialog = New-Object System.Windows.Forms.SaveFileDialog
+  $dialog.Title = $env:PARAMETER_DRAW_DIALOG_TITLE
+  $dialog.Filter = '水闸方案 (*.json)|*.json'
+  $dialog.DefaultExt = 'json'
+  $dialog.AddExtension = $true
+  $dialog.FileName = $env:PARAMETER_DRAW_DIALOG_FILE_NAME
+} else {
+  $dialog = New-Object System.Windows.Forms.OpenFileDialog
+  $dialog.Title = $env:PARAMETER_DRAW_DIALOG_TITLE
+  $dialog.Filter = '水闸方案 (*.json)|*.json'
+  $dialog.Multiselect = $false
+}
+
+$result = $dialog.ShowDialog($owner)
+$owner.Close()
+if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
+  $selectedPath = $dialog.SelectedPath
+  if (-not $selectedPath) {
+    $selectedPath = $dialog.FileName
+  }
+  [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($selectedPath))
+}
+`
+
 
 /**
  * 定位 code/ 目录
@@ -40,6 +81,59 @@ function getBackendCommand(codeRoot, schemePath) {
     executable: path.join(process.resourcesPath, 'backend', 'run_from_json', 'run_from_json.exe'),
     args: [schemePath],
   }
+}
+
+/**
+ * 打包环境使用 Windows 系统选择器  避免 Electron 原生对话框创建后保持隐藏
+ * @param {'open' | 'save' | 'folder'} type
+ * @param {string} title
+ * @param {string} fileName
+ * @returns {Promise<string | null>}        用户选取的路径 取消返回 null
+ */
+function showWindowsDialog(type, title, fileName = '') {
+  // 转码 base64
+  const encodedCommand = Buffer.from(windowsDialogScript, 'utf16le').toString('base64')
+
+  return new Promise((resolve, reject) => {
+    // 启动隐藏的 PowerShell 进程
+    const child = spawn(
+      'powershell.exe',
+      ['-NoProfile', '-STA', '-NonInteractive', '-EncodedCommand', encodedCommand],
+      {
+        env: {
+          ...process.env,
+          PARAMETER_DRAW_DIALOG_TYPE: type,
+          PARAMETER_DRAW_DIALOG_TITLE: title,
+          PARAMETER_DRAW_DIALOG_FILE_NAME: fileName,
+        },
+        windowsHide: true,   // 隐藏窗口
+      },
+    )
+    let stdout = ''   // 正常结果（选中的路径）
+    let stderr = ''   // 错误信息
+
+    // 收集输出
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk.toString('utf-8')
+    })
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString('utf-8')
+    })
+
+    // 失败
+    child.on('error', reject)
+
+    // 进程推出
+    child.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(stderr.trim() || `系统文件选择器退出状态异常  ${code}`))
+        return
+      }
+
+      const result = stdout.trim()
+      resolve(result ? Buffer.from(result, 'base64').toString('utf-8') : null)
+    })
+  })
 }
 
 
@@ -110,6 +204,18 @@ app.on('window-all-closed', () => {
  * 打开本地 JSON 方案文件  并把文件内容返回给渲染进程
  */
 ipcMain.handle('scheme:open', async () => {
+  if (!isDev) {
+    const filePath = await showWindowsDialog('open', '打开方案')
+    if (!filePath) {
+      return null
+    }
+
+    return {
+      filePath,
+      content: fs.readFileSync(filePath, 'utf-8'),
+    }
+  }
+
   const result = await dialog.showOpenDialog({
     title: '打开方案',
     filters: [{ name: '水闸方案', extensions: ['json'] }],
@@ -134,17 +240,24 @@ ipcMain.handle('scheme:open', async () => {
 ipcMain.handle('scheme:save', async (_event, payload) => {
   let filePath = payload.filePath
   if (!filePath) {
-    const result = await dialog.showSaveDialog({
-      title: '保存方案',
-      defaultPath: `${payload.name || '水闸方案'}.json`,
-      filters: [{ name: '水闸方案', extensions: ['json'] }],
-    })
+    if (!isDev) {
+      filePath = await showWindowsDialog('save', '保存方案', `${payload.name || '水闸方案'}.json`)
+      if (!filePath) {
+        return null
+      }
+    } else {
+      const result = await dialog.showSaveDialog({
+        title: '保存方案',
+        defaultPath: `${payload.name || '水闸方案'}.json`,
+        filters: [{ name: '水闸方案', extensions: ['json'] }],
+      })
 
-    if (result.canceled || !result.filePath) {
-      return null
+      if (result.canceled || !result.filePath) {
+        return null
+      }
+
+      filePath = result.filePath
     }
-
-    filePath = result.filePath
   }
   fs.writeFileSync(filePath, payload.content, 'utf-8')
   return filePath
@@ -155,6 +268,16 @@ ipcMain.handle('scheme:save', async (_event, payload) => {
  * 另存方案总是弹出保存对话框   避免覆盖当前方案文件
  */
 ipcMain.handle('scheme:saveAs', async (_event, payload) => {
+  if (!isDev) {
+    const filePath = await showWindowsDialog('save', '另存方案', `${payload.name || '水闸方案'}.json`)
+    if (!filePath) {
+      return null
+    }
+
+    fs.writeFileSync(filePath, payload.content, 'utf-8')
+    return filePath
+  }
+
   const result = await dialog.showSaveDialog({
     title: '另存方案',
     defaultPath: `${payload.name || '水闸方案'}.json`,
@@ -174,6 +297,10 @@ ipcMain.handle('scheme:saveAs', async (_event, payload) => {
  * 选择出图保存目录
  */
 ipcMain.handle('output:selectDirectory', async () => {
+  if (!isDev) {
+    return showWindowsDialog('folder', '选择出图保存目录')
+  }
+
   const result = await dialog.showOpenDialog({
     title: '选择出图保存目录',
     properties: ['openDirectory'],

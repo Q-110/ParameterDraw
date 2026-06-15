@@ -1,4 +1,4 @@
-// ==================== 基础设置字段 ====================
+// ==================== 基础设置 ====================
 
 export const sluiceBasicFields = [
   { key: '底板顶部标高', label: '底板顶部标高', unit: 'm', step: 0.01 },
@@ -7,7 +7,7 @@ export const sluiceBasicFields = [
   { key: '止水偏移表面', label: '止水偏移表面', unit: 'cm' },
 ]
 
-// ==================== 高程推算展示配置 ====================
+// ==================== 高程推算 ====================
 
 export const sluiceDerivedSections = [
   {
@@ -27,7 +27,7 @@ export const sluiceDerivedSections = [
   },
 ]
 
-// 底板材料展示   替换出图日志区域
+// ==================== 底板材料 ====================
 export const sluiceMaterialFields = [
   { key: '上游连接段底板', label: '上游连接段底板' },
   { key: '上游渐变段底板', label: '上游渐变段底板' },
@@ -38,7 +38,7 @@ export const sluiceMaterialFields = [
   { key: 'C15垫层砼', label: 'C15垫层砼' },
 ]
 
-// ==================== 项目默认值 ====================
+// ==================== 项目默认 ====================
 
 export const defaultProject = {
   工程名称: '参数化自动出图',
@@ -52,7 +52,7 @@ export const defaultProject = {
   垫层类型2: '碎石垫层',
 }
 
-// ==================== 输出默认值 ====================
+// ==================== 输出默认 ====================
 
 export const defaultOutput = {
   savepath: 'D:\\Desktop\\ParameterDrawOutput',

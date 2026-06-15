@@ -22,6 +22,9 @@ const extraResources = [
   },
 ]
 
+/**
+ * 根据打包命令决定是否携带模型模板
+ */
 if (includeTemplates) {
   extraResources.push(
     {
@@ -37,9 +40,6 @@ if (includeTemplates) {
   )
 }
 
-/**
- * 根据打包命令决定是否携带模型模板
- */
 module.exports = {
   appId: 'com.parameterdraw.desktop',
   productName: 'ParameterDraw',
