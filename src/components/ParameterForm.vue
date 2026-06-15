@@ -65,8 +65,11 @@ const emit = defineEmits([
 
 const parameterSubgroups = computed(() => {
   const subgroups = []
+  const fields = props.activeGroup.fields.filter(
+    (field) => field.key !== '中墙厚' || props.derived.闸孔数 !== 1,
+  )
 
-  props.activeGroup.fields.forEach((field) => {
+  fields.forEach((field) => {
     const current = subgroups[subgroups.length - 1]
 
     if (!current || current.name !== field.subgroup) {

@@ -11,6 +11,8 @@ const partColors = {
   downstreamTransition: 0x7a87a8,
 }
 
+const normalMeshOpacity = 0.8
+
 /**
  * 创建体块材质
  * @param part
@@ -22,8 +24,8 @@ export function createMeshMaterial(part, highlighted, isGuide) {
     color: highlighted ? 0xf4b942 : partColors[part],
     roughness: highlighted ? 0.45 : 0.72,
     metalness: highlighted ? 0.05 : 0.02,
-    transparent: isGuide,
-    opacity: isGuide ? 0.5 : 1,
+    transparent: true,
+    opacity: isGuide ? 0.5 : normalMeshOpacity,
   })
 }
 
@@ -62,8 +64,8 @@ export function createDimensionMaterial(context) {
  * @param material
  * @param part
  * @param highlighted
- * @param isGuide
- * @param dimmed
+ * @param isGuide     是否为辅助体（默认隐藏  聚焦时显示）
+ * @param dimmed      非聚焦区域变暗
  */
 export function updateMeshMaterial(material, part, highlighted, isGuide, dimmed) {
   const materials = Array.isArray(material) ? material : [material]
@@ -72,13 +74,13 @@ export function updateMeshMaterial(material, part, highlighted, isGuide, dimmed)
       item.color.setHex(highlighted ? 0xf4b942 : partColors[part])
       item.roughness = highlighted ? 0.45 : 0.72
       item.metalness = highlighted ? 0.05 : 0.02
-      const transparent = isGuide || dimmed
+      const transparent = isGuide || dimmed || normalMeshOpacity < 1
       if (item.transparent !== transparent) {
         item.transparent = transparent
         item.needsUpdate = true
       }
-      // 聚焦辅助体 0.5   非聚焦 0.5      否则 1
-      item.opacity = isGuide ? 0.5 : dimmed ? 0.5 : 1
+      // 聚焦辅助体 0.5   非聚焦区域 0.5   正常模型 0.8
+      item.opacity = isGuide ? 0.5 : dimmed ? 0.5 : normalMeshOpacity
       item.depthWrite = !dimmed
     }
   })

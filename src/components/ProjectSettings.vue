@@ -10,17 +10,10 @@
         />
       </label>
       <label>
-        <span>文档名称</span>
+        <span>图纸名称</span>
         <input
           :value="project.文档名称"
           @input="updateProject('文档名称', $event)"
-        />
-      </label>
-      <label>
-        <span>图纸编号规则</span>
-        <input
-          :value="project.图纸编号规则"
-          @input="updateProject('图纸编号规则', $event)"
         />
       </label>
       <label>
@@ -38,24 +31,10 @@
         />
       </label>
       <label>
-        <span>主材类型</span>
+        <span>图纸编号规则</span>
         <input
-          :value="project.主材类型"
-          @input="updateProject('主材类型', $event)"
-        />
-      </label>
-      <label>
-        <span>垫层类型1</span>
-        <input
-          :value="project.垫层类型1"
-          @input="updateProject('垫层类型1', $event)"
-        />
-      </label>
-      <label>
-        <span>垫层类型2</span>
-        <input
-          :value="project.垫层类型2"
-          @input="updateProject('垫层类型2', $event)"
+          :value="project.图纸编号规则"
+          @input="updateProject('图纸编号规则', $event)"
         />
       </label>
       <label>
@@ -71,7 +50,7 @@
       <label class="path-field">
         <span>保存路径</span>
         <div class="path-picker">
-          <input :value="output.savepath" readonly />
+          <textarea :value="output.savepath" rows="2" readonly></textarea>
           <button
             type="button"
             title="选择出图保存文件夹"
@@ -112,3 +91,9 @@ function updateDrawingMonth(event) {
   emit('updateProject', '出图时间', event.target.value.replace('-', '.'))
 }
 </script>
+
+<style scoped>
+.compact-form {
+  gap: 15px;
+}
+</style>

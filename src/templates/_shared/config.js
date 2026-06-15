@@ -27,17 +27,6 @@ export const sluiceDerivedSections = [
   },
 ]
 
-// ==================== 底板材料 ====================
-export const sluiceMaterialFields = [
-  { key: '上游连接段底板', label: '上游连接段底板' },
-  { key: '上游渐变段底板', label: '上游渐变段底板' },
-  { key: '闸室底板', label: '闸室底板' },
-  { key: '消力池底板', label: '消力池底板' },
-  { key: '下游渐变段底板', label: '下游渐变段底板' },
-  { key: '下游连接段底板', label: '下游连接段底板' },
-  { key: 'C15垫层砼', label: 'C15垫层砼' },
-]
-
 // ==================== 项目默认 ====================
 
 export const defaultProject = {

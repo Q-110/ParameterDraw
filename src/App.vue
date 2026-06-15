@@ -62,14 +62,12 @@
       <BasicParameterPanel
         :fields="currentTemplate.basicFields"
         :params="params"
+        :project="project"
         @update-param="updateParam"
+        @update-project="updateProject"
       />
       <DerivedPanel
         :sections="currentTemplate.derivedSections"
-        :derived="derived"
-      />
-      <MaterialPanel
-        :fields="currentTemplate.materialFields"
         :derived="derived"
       />
     </section>
@@ -79,7 +77,6 @@
 <script setup>
 import BasicParameterPanel from './components/BasicParameterPanel.vue'
 import DerivedPanel from './components/DerivedPanel.vue'
-import MaterialPanel from './components/MaterialPanel.vue'
 import ParameterForm from './components/ParameterForm.vue'
 import ProjectSettings from './components/ProjectSettings.vue'
 import SchemePanel from './components/SchemePanel.vue'

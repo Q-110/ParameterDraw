@@ -75,7 +75,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import appIconUrl from '../../build/icon.ico?url'
+import appIconUrl from '../../build/豫水设计.jpg?url'
 
 const props = defineProps([
   'schemeName',

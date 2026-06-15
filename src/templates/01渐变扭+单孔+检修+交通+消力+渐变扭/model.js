@@ -172,7 +172,7 @@ const rawGroups = [
   },
   {
     id: 'upstreamConnection',
-    title: '上游连接',
+    title: '上游连接段',
     subgroups: [
       { name: '上游连接底板参数', endKey: '上游连接段底板齿墙宽' },
       { name: '上游连接坡面构造参数', endKey: '上游连接段坡底外槽宽' },
@@ -198,7 +198,7 @@ const rawGroups = [
   },
   {
     id: 'upstreamTransition',
-    title: '上游渐变',
+    title: '上游渐变段',
     subgroups: [
       { name: '上游渐变中断面参数', endKey: '上游渐变段中断面顶端宽' },
       { name: '上游渐变上断面参数', endKey: '上游渐变段上断面底宽' },
@@ -242,7 +242,7 @@ const rawGroups = [
   },
   {
     id: 'downstreamConnection',
-    title: '下游连接',
+    title: '下游连接段',
     subgroups: [
       { name: '下游连接底板参数', endKey: '下游连接段底板齿墙宽' },
       { name: '下游连接坡面构造参数', endKey: '下游连接段坡底外槽宽' },
@@ -268,7 +268,7 @@ const rawGroups = [
   },
   {
     id: 'downstreamTransition',
-    title: '下游渐变',
+    title: '下游渐变段',
     subgroups: [
       { name: '下游渐变中断面参数', endKey: '下游渐变段中断面顶端宽' },
       { name: '下游渐变上断面参数', endKey: '下游渐变段上断面底宽' },
@@ -313,6 +313,15 @@ const rawGroups = [
 ]
 
 // 为字段补充分组和高亮元数据   保持 groups.fields 对外仍为扁平数组
+const groupOrder = [
+  'gate',
+  'stilling',
+  'upstreamConnection',
+  'upstreamTransition',
+  'downstreamTransition',
+  'downstreamConnection',
+]
+
 export const groups = rawGroups.map(({ subgroups, ...group }) => {
   let subgroupIndex = 0
 
@@ -333,7 +342,9 @@ export const groups = rawGroups.map(({ subgroups, ...group }) => {
       return result
     }),
   }
-})
+}).sort(
+  (left, right) => groupOrder.indexOf(left.id) - groupOrder.indexOf(right.id),
+)
 
 // ==================== 派生计算 ====================
 

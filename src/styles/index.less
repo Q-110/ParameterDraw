@@ -29,6 +29,7 @@ body {
 
 button,
 input,
+textarea,
 select {
   font: inherit;
 }
@@ -53,7 +54,8 @@ button {
   }
 }
 
-input {
+input,
+textarea {
   width: 100%;
   min-width: 0;
   border: 1px solid #cfd8d5;
@@ -99,9 +101,9 @@ h3 {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 284px minmax(500px, 1.15fr) minmax(320px, 0.85fr);
-  grid-template-rows: 76px minmax(0, 1fr) 190px;
-  gap: 12px;
+  grid-template-columns: 284px minmax(500px, 3fr) minmax(320px, 2fr);
+  grid-template-rows: 76px minmax(0, 1fr) 200px;
+  gap: 10px;
   height: 100vh;
   min-height: 0;
   overflow: hidden;
@@ -137,7 +139,7 @@ h3 {
   display: grid;
   grid-column: 2 / 4;
   grid-row: 3;
-  grid-template-columns: minmax(200px, 3fr) minmax(220px, 3fr) minmax(300px, 4fr);
+  grid-template-columns: minmax(500px, 3fr) minmax(320px, 2fr);
   gap: 12px;
   min-width: 0;
   min-height: 0;
@@ -164,7 +166,7 @@ h3 {
   box-shadow: 0 1px 2px rgba(21, 34, 31, 0.05);
   min-height: 0;
 
-  &:not(.form-panel):not(.derived-panel):not(.validation-panel):not(.material-panel) {
+  &:not(.form-panel):not(.derived-panel):not(.validation-panel) {
     padding: 14px;
   }
 }
@@ -472,6 +474,10 @@ h3 {
     grid-template-columns: 1fr 1fr;
   }
 
+  &.three-columns {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   label {
     display: flex;
     flex-direction: column;
@@ -486,8 +492,23 @@ h3 {
 
 .path-picker {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 64px;
+  justify-items: end;
   gap: 8px;
+
+  textarea {
+    min-height: 58px;
+    resize: none;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  button {
+    width: 64px;
+  }
+}
+
+.path-field {
+  margin-top: 16px;
 }
 
 .field-row {
@@ -503,17 +524,40 @@ h3 {
 
 .form-panel,
 .derived-panel,
-.validation-panel,
-.material-panel {
+.validation-panel {
   padding: 14px;
 }
 
 .project-panel,
-.basic-panel,
-.derived-panel,
-.material-panel {
+.derived-panel {
   height: 100%;
   overflow: auto;
+}
+
+.basic-panel {
+  grid-column: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+.derived-panel {
+  grid-column: 2;
+}
+
+.basic-parameter-groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 8px;
+  margin-top: 8px;
+
+  .compact-form {
+    margin-top: 0;
+  }
+
+  .three-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .form-panel {
@@ -602,15 +646,6 @@ h3 {
   margin-top: 8px;
 }
 
-.material-results {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-template-rows: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-  height: calc(100% - 28px);
-  margin-top: 8px;
-}
-
 .result-card {
   display: grid;
   align-content: center;
@@ -651,16 +686,6 @@ h3 {
 
   strong {
     text-align: right;
-  }
-}
-
-.material-result-card {
-  align-content: start;
-
-  strong {
-    line-height: 1.15;
-    white-space: normal;
-    word-break: break-all;
   }
 }
 
@@ -797,44 +822,17 @@ dd {
   }
 }
 
-.material-panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-
-  dl {
-    margin-top: 8px;
-    gap: 4px 0;
-  }
-
-  dt {
-    font-size: 11px;
-  }
-
-  dd {
-    font-size: 12px;
-  }
-}
-
 .derived-panel {
   overflow: hidden;
 }
 
 @media (max-width: 1400px) {
   .bottom-panels {
-    grid-template-columns: minmax(190px, 3fr) minmax(210px, 3fr) minmax(280px, 4fr);
+    grid-template-columns: minmax(500px, 3fr) minmax(320px, 2fr);
   }
 
-  .derived-sections,
-  .material-results {
+  .derived-sections {
     gap: 4px;
-  }
-
-  .material-results {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: repeat(3, minmax(0, 1fr));
   }
 
   .result-card {
