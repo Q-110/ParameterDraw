@@ -11,7 +11,7 @@ const partColors = {
   downstreamTransition: 0x7a87a8,
 }
 
-const normalMeshOpacity = 0.8
+const normalMeshOpacity = 0.9
 
 /**
  * 创建体块材质
