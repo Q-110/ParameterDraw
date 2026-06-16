@@ -11,8 +11,10 @@ import {
  * 为单个部件创建完整的 Three.js 场景
  * @param container   DOM 容器
  * @param part        部件 ID
+ * @param options     预览配置
  */
-export function createPreviewContext(container, part) {
+export function createPreviewContext(container, part, options = {}) {
+  const interactive = options.interactive !== false
   // 创建场景 Scene
   const scene = new THREE.Scene()
   scene.background = new THREE.Color(0xf8faf9)
@@ -30,6 +32,8 @@ export function createPreviewContext(container, part) {
   container.appendChild(renderer.domElement)
   // 每个预览区域独立控制视角：左键旋转、滚轮缩放、右键平移
   const controls = new OrbitControls(camera, renderer.domElement)
+  controls.enableRotate = interactive
+  controls.enableZoom = interactive
   controls.enablePan = false
   controls.mouseButtons = {
     LEFT: THREE.MOUSE.ROTATE,
@@ -115,14 +119,17 @@ export function createPreviewContext(container, part) {
     panPointerMoveHandler,
     panPointerUpHandler,
     contextMenuHandler,
+    interactive,
   }
   controls.addEventListener('change', changeHandler)
   controls.update()
-  renderer.domElement.addEventListener('pointerdown', panPointerDownHandler)
-  renderer.domElement.addEventListener('pointermove', panPointerMoveHandler)
-  renderer.domElement.addEventListener('pointerup', panPointerUpHandler)
-  renderer.domElement.addEventListener('pointercancel', panPointerUpHandler)
-  renderer.domElement.addEventListener('contextmenu', contextMenuHandler)
+  if (interactive) {
+    renderer.domElement.addEventListener('pointerdown', panPointerDownHandler)
+    renderer.domElement.addEventListener('pointermove', panPointerMoveHandler)
+    renderer.domElement.addEventListener('pointerup', panPointerUpHandler)
+    renderer.domElement.addEventListener('pointercancel', panPointerUpHandler)
+    renderer.domElement.addEventListener('contextmenu', contextMenuHandler)
+  }
   observer.observe(container)
   resizeContext(container, context) // 立即执行一次
   return context
@@ -144,26 +151,28 @@ export function disposePreviewContext(context) {
   clearPreviewMeshes(context)
   context.observer.disconnect()
   context.controls.removeEventListener('change', context.changeHandler)
-  context.renderer.domElement.removeEventListener(
-    'pointerdown',
-    context.panPointerDownHandler,
-  )
-  context.renderer.domElement.removeEventListener(
-    'pointermove',
-    context.panPointerMoveHandler,
-  )
-  context.renderer.domElement.removeEventListener(
-    'pointerup',
-    context.panPointerUpHandler,
-  )
-  context.renderer.domElement.removeEventListener(
-    'pointercancel',
-    context.panPointerUpHandler,
-  )
-  context.renderer.domElement.removeEventListener(
-    'contextmenu',
-    context.contextMenuHandler,
-  )
+  if (context.interactive) {
+    context.renderer.domElement.removeEventListener(
+      'pointerdown',
+      context.panPointerDownHandler,
+    )
+    context.renderer.domElement.removeEventListener(
+      'pointermove',
+      context.panPointerMoveHandler,
+    )
+    context.renderer.domElement.removeEventListener(
+      'pointerup',
+      context.panPointerUpHandler,
+    )
+    context.renderer.domElement.removeEventListener(
+      'pointercancel',
+      context.panPointerUpHandler,
+    )
+    context.renderer.domElement.removeEventListener(
+      'contextmenu',
+      context.contextMenuHandler,
+    )
+  }
   context.controls.dispose()
   context.renderer.dispose()
   context.renderer.domElement.remove()

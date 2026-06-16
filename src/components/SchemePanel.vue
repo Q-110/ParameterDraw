@@ -1,7 +1,16 @@
 <template>
   <section class="panel scheme-panel app-toolbar">
     <div class="toolbar-brand">
-      <img :src="appIconUrl" alt="" />
+      <img
+        class="toolbar-brand-logo"
+        :src="appIconUrl"
+        alt="返回首页"
+        role="button"
+        tabindex="0"
+        @click="emit('home')"
+        @keydown.enter="emit('home')"
+        @keydown.space.prevent="emit('home')"
+      />
       <div>
         <strong>ParameterDraw</strong>
         <span>水闸参数化出图</span>
@@ -89,6 +98,7 @@ const props = defineProps([
 const emit = defineEmits([
   'update:schemeName',
   'update:templateId',
+  'home',
   'new',
   'open',
   'save',
